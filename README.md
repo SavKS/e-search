@@ -3,22 +3,13 @@ ESearch
 
 
 # Installation
+
 ### Step 1
-Add repository into your composer.json
-
-    "repositories": [
-            {
-                "type": "composer",
-                "url": "https://packagist.ideil.com"
-            }
-    ]
-
-### Step 2
 install package
 
     composer require savks/e-search
 
-### Step 3
+### Step 2
 Publish e-search config file
 
     php artisan vendor:publish
