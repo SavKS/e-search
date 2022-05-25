@@ -1,0 +1,22 @@
+{
+    "name": "savks/e-search",
+    "license": "proprietary",
+    "require": {
+        "elasticsearch/elasticsearch": "~8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Savks\\ESearch\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Savks\\ESearch\\Providers\\ESearchServiceProvider"
+            ],
+            "aliases": {
+                "ESearch": "Savks\\ESearch\\Facades\\ESearch"
+            }
+        }
+    }
+}
