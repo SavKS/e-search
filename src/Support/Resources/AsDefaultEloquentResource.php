@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\ESearch\Support\Helpers;
+namespace Savks\ESearch\Support\Resources;
 
 use Closure;
 use Illuminate\Database\Query\Builder as QueryBuilder;

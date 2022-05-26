@@ -8,7 +8,7 @@ use Illuminate\Support\ServiceProvider;
 
 use Savks\ESearch\{
     Manager\Manager,
-    Support\ErrorsHandler,
+    Elasticsearch\ErrorsHandler,
     Commands
 };
 use Monolog\{

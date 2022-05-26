@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\ESearch\Support;
+namespace Savks\ESearch\Resources;
 
 use Illuminate\Support\Facades\Artisan;
 use RuntimeException;
@@ -10,6 +10,7 @@ use Savks\ESearch\Commands\{
     Seed,
     Sync
 };
+use Savks\ESearch\Support\MutableResource;
 
 class ResourceRunner
 {

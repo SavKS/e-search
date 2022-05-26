@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\ESearch\Support;
+namespace Savks\ESearch\Elasticsearch;
 
 enum RequestTypes: string
 {

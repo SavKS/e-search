@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\ESearch\Support;
+namespace Savks\ESearch\Support\Resources;
 
 use Closure;
 use Illuminate\Support\Collection;

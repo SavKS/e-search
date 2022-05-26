@@ -8,6 +8,7 @@ use Illuminate\Http\Resources\MissingValue;
 use LogicException;
 use Savks\ESearch\Builder\DSL\Query;
 use Savks\ESearch\Exceptions\EmptyQuery;
+use Savks\ESearch\Resources\ResourceRunner;
 use Savks\ESearch\Updates\Updates;
 
 use Illuminate\Support\{
@@ -248,7 +249,7 @@ abstract class MutableResource extends Resource
     }
 
     /**
-     * @return ResourceRunner
+     * @return \Savks\ESearch\Resources\ResourceRunner
      */
     public static function runner(): ResourceRunner
     {

@@ -1,11 +1,11 @@
 <?php
 
-namespace Savks\ESearch\Support\Config;
+namespace Savks\ESearch\Resources\Config;
 
 use Closure;
-use Savks\ESearch\Builder\Sort;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use RuntimeException;
+use Savks\ESearch\Builder\Sort;
 
 class SortsRepository
 {

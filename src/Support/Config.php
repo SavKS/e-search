@@ -4,8 +4,8 @@ namespace Savks\ESearch\Support;
 
 use Closure;
 
-use Savks\ESearch\Support\Config\{
-    ScopesRepository,
+use Savks\ESearch\Resources\Config\ScopesRepository;
+use Savks\ESearch\Resources\Config\{
     SortsRepository
 };
 

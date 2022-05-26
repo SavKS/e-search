@@ -1,14 +1,16 @@
 <?php
 
-namespace Savks\ESearch\Support;
+namespace Savks\ESearch\Manager;
 
 use LogicException;
 use RuntimeException;
+use Savks\ESearch\Support\MutableResource;
+use Savks\ESearch\Support\Resource;
 
 class ResourcesRepository
 {
     /**
-     * @var array<string, class-string<Resource>>
+     * @var array<string, class-string<Resource>|class-string<MutableResource>>
      */
     protected array $items = [];
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\ESearch\Support\Config;
+namespace Savks\ESearch\Resources\Config;
 
 use Closure;
 

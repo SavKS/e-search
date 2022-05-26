@@ -14,7 +14,7 @@ use Illuminate\Pagination\{
 };
 use Savks\ESearch\Support\{
     Resource,
-    WithMapping
+    Resources\WithMapping
 };
 
 class ResultFactory

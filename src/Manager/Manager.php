@@ -7,6 +7,8 @@ use Http\Promise\Promise;
 use Savks\ESearch\Builder\DSL\Query;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
+use Savks\ESearch\Elasticsearch\RequestTypes;
+use Savks\ESearch\Manager\ResourcesRepository;
 use stdClass;
 
 use Elastic\Elasticsearch\{
@@ -19,9 +21,7 @@ use Elastic\Elasticsearch\{
 use Savks\ESearch\Support\{
     Resource,
     RequestConfig,
-    RequestConfigContract,
-    RequestTypes,
-    ResourcesRepository
+    RequestConfigContract
 };
 
 class Manager

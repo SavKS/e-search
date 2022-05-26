@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\ESearch\Support\Config;
+namespace Savks\ESearch\Resources\Config;
 
 use Savks\ESearch\Builder\Sort;
 use Illuminate\Contracts\Container\BindingResolutionException;

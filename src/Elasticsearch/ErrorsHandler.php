@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\ESearch\Support;
+namespace Savks\ESearch\Elasticsearch;
 
 use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Illuminate\Foundation\Application;
@@ -11,6 +11,7 @@ use Savks\ESearch\Exceptions\{
     OperationFail,
     SaveFail
 };
+use Savks\ESearch\Elasticsearch\RequestTypes;
 
 class ErrorsHandler
 {

@@ -2,6 +2,8 @@
 
 namespace Savks\ESearch\Support;
 
+use Savks\ESearch\Elasticsearch\RequestTypes;
+
 class RequestConfig implements RequestConfigContract
 {
     /**
