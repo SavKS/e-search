@@ -3,6 +3,7 @@
 namespace Savks\ESearch\Builder;
 
 use Closure;
+use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Illuminate\Support\Collection;
 use LogicException;
 use RuntimeException;
@@ -29,11 +30,6 @@ class ResultFactory
     protected array $raw;
 
     /**
-     * @var Sort[]
-     */
-    protected array $sortedBy;
-
-    /**
      * @var bool
      */
     protected bool $withMapping = false;
@@ -44,15 +40,20 @@ class ResultFactory
     protected ?Closure $mapResolver = null;
 
     /**
+     * @var ElasticsearchResponse
+     */
+    protected ElasticsearchResponse $response;
+
+    /**
      * @param Resource $resource
      * @param array $raw
-     * @param Sort[] $sortedBy
+     * @param ElasticsearchResponse $response
      */
-    public function __construct(Resource $resource, array $raw, array $sortedBy)
+    public function __construct(Resource $resource, array $raw, ElasticsearchResponse $response)
     {
         $this->resource = $resource;
         $this->raw = $raw;
-        $this->sortedBy = $sortedBy;
+        $this->response = $response;
     }
 
     /**
@@ -92,7 +93,7 @@ class ResultFactory
             $items,
             $paginator,
             $this->resource,
-            $this->sortedBy
+            $this->response
         );
     }
 

@@ -4,7 +4,6 @@ namespace Savks\ESearch\Support;
 
 use Illuminate\Support\Str;
 use Savks\ESearch\Builder\Builder;
-use Savks\ESearch\Builder\DefaultSearchQuery;
 
 abstract class Resource
 {
@@ -83,14 +82,6 @@ abstract class Resource
         }
 
         return $this->config;
-    }
-
-    /**
-     * @return string
-     */
-    public function searchQueryClass(): string
-    {
-        return DefaultSearchQuery::class;
     }
 
     /**

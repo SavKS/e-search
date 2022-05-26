@@ -1,11 +1,15 @@
 <?php
 
-namespace Savks\ESearch\Builder;
+namespace Savks\ESearch\Support\Builder;
 
-use Savks\ESearch\Builder\DSL\Query;
-use Savks\ESearch\Support\SearchParams;
+use Closure;
 
-class DefaultSearchQuery
+use Savks\ESearch\Builder\DSL\{
+    Query,
+    Queryable
+};
+
+class FullTextQuery implements Queryable
 {
     /**
      * @var mixed|string
@@ -23,22 +27,39 @@ class DefaultSearchQuery
     protected SearchParams $params;
 
     /**
-     * @param mixed|string $term
+     * @param mixed $term
      * @param array $fields
-     * @param SearchParams $params
      */
-    public function __construct(mixed $term, array $fields, SearchParams $params)
+    public function __construct(mixed $term, array $fields)
     {
         $this->term = $term;
         $this->fields = $fields;
-        $this->params = $params;
+
+        $this->params = new SearchParams();
+    }
+
+    /**
+     * @param SearchParams|Closure $predicate
+     * @return $this
+     */
+    public function changeSearchParams(SearchParams|Closure $predicate): static
+    {
+        $params = \call_user_func($predicate, $this->params);
+
+        if ($predicate instanceof Closure) {
+            $this->params = \call_user_func($predicate);
+        } elseif ($params instanceof SearchParams) {
+            $this->params = $params;
+        }
+
+        return $this;
     }
 
     /**
      * @param mixed $term
      * @return bool
      */
-    public static function checkTerm(mixed $term): bool
+    protected function checkTerm(mixed $term): bool
     {
         return \is_string($term) && \json_encode($term) !== false;
     }
@@ -48,7 +69,7 @@ class DefaultSearchQuery
      */
     public function term(): ?string
     {
-        return static::checkTerm($this->term) ? $this->term : null;
+        return $this->checkTerm($this->term) ? $this->term : null;
     }
 
     /**
@@ -56,7 +77,7 @@ class DefaultSearchQuery
      */
     public function toQuery(): Query
     {
-        if (static::checkTerm($this->term)) {
+        if ($this->checkTerm($this->term)) {
             return (new Query())->raw([
                 'query_string' => [
                     'fields' => $this->fields,

@@ -1,8 +1,8 @@
 <?php
 
-namespace Savks\ESearch\Support;
+namespace Savks\ESearch\Support\Builder;
 
-final class SearchParams
+class SearchParams
 {
     /**
      * @var string|bool
@@ -54,13 +54,5 @@ final class SearchParams
         $this->fuzzy = $value === null ? true : $value;
 
         return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public static function make(): self
-    {
-        return new self();
     }
 }

@@ -84,7 +84,7 @@ class Runner
         $hasAppliedUpdates = $eSearchUpdates->isNotEmpty();
         $appliedUpdatesCount = $eSearchUpdates->count();
 
-        $client = ESearch::getClient();
+        $client = ESearch::client();
         $indexName = $this->resource->prefixedIndexName();
 
         $index = 0;

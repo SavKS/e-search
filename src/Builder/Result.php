@@ -2,6 +2,7 @@
 
 namespace Savks\ESearch\Builder;
 
+use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Savks\ESearch\Support\Resource;
@@ -29,29 +30,29 @@ class Result
     public readonly Resource $resource;
 
     /**
-     * @var Sort[]
+     * @var ElasticsearchResponse
      */
-    public readonly array $sortedBy;
+    public readonly ElasticsearchResponse $response;
 
     /**
      * @param array $data
      * @param Collection $items
      * @param LengthAwarePaginator|null $paginator
      * @param Resource $resource
-     * @param array $sortedBy
+     * @param ElasticsearchResponse $response
      */
     public function __construct(
         array $data,
         Collection $items,
         ?LengthAwarePaginator $paginator,
         Resource $resource,
-        array $sortedBy = []
+        ElasticsearchResponse $response
     ) {
         $this->data = $data;
         $this->items = $items;
         $this->paginator = $paginator;
         $this->resource = $resource;
-        $this->sortedBy = $sortedBy;
+        $this->response = $response;
     }
 
     /**
@@ -78,14 +79,6 @@ class Result
         return $this->items->pluck(
             $this->resource->documentIdBy()
         )->all();
-    }
-
-    /**
-     * @return Sort|null
-     */
-    public function firstSort(): ?Sort
-    {
-        return $this->sortedBy ? head($this->sortedBy) : null;
     }
 
     /**

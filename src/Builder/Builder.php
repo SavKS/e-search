@@ -3,26 +3,32 @@
 namespace Savks\ESearch\Builder;
 
 use Closure;
+use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use ESearch;
-use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use RuntimeException;
-use Savks\ESearch\Builder\DSL\Query as DSLQuery;
-use Str;
+use Savks\ESearch\Support\Resource;
 
-use Elastic\Elasticsearch\{
-    Exception\ClientResponseException,
-    Exception\ServerResponseException,
-    Response\Elasticsearch as ElasticsearchResponse,
-    Client as ElasticsearchClient
+use Elastic\Elasticsearch\Exception\{
+    ClientResponseException,
+    ServerResponseException
 };
-use Savks\ESearch\Support\{
-    Resource,
-    SearchParams
+use Illuminate\Support\{
+    Arr,
+    Str
+};
+use Savks\ESearch\Builder\DSL\{
+    Query,
+    Queryable
 };
 
 class Builder
 {
+    /**
+     * @var Resource
+     */
+    public readonly Resource $resource;
+
     /**
      * @var int
      */
@@ -34,19 +40,9 @@ class Builder
     protected int $itemsLimit = 10000;
 
     /**
-     * @var Resource
-     */
-    public readonly Resource $resource;
-
-    /**
      * @var array
      */
     protected array $config;
-
-    /**
-     * @var ElasticsearchClient
-     */
-    protected ElasticsearchClient $client;
 
     /**
      * @var array
@@ -59,7 +55,7 @@ class Builder
     /**
      * @var bool
      */
-    protected bool $sortWithScore = false;
+    protected bool $isSortWithScore = false;
 
     /**
      * @var int
@@ -77,9 +73,9 @@ class Builder
     protected ?array $selectedFields = null;
 
     /**
-     * @var DSLQuery[]
+     * @var Query[]
      */
-    protected array $dslQueries = [];
+    protected array $queries = [];
 
     /**
      * @var bool
@@ -102,8 +98,6 @@ class Builder
     public function __construct(Resource $resource)
     {
         $this->resource = $resource;
-
-        $this->client = ESearch::client();
 
         $this->limit = static::DEFAULT_LIMIT;
 
@@ -154,7 +148,7 @@ class Builder
         array|string $fallback = null,
         bool $visibleOnly = true
     ): self {
-        $this->sortWithScore = true;
+        $this->isSortWithScore = true;
 
         return $this->sortBy($data, $options, $fallback, $visibleOnly);
     }
@@ -195,7 +189,7 @@ class Builder
             $sorts = [];
 
             foreach ($data as $key => $value) {
-                $sorts[] = $this->mapSort($key, $value, $visibleOnly);
+                $sorts[] = $this->processSort($key, $value, $visibleOnly);
             }
 
             $this->sortConfig['payload'] = array_merge(...$sorts);
@@ -219,7 +213,7 @@ class Builder
      *
      * @throws InvalidArgumentException
      */
-    protected function mapSort(int|string $key, array|string $value, bool $visibleOnly = true): array
+    protected function processSort(int|string $key, array|string $value, bool $visibleOnly = true): array
     {
         $sorts = [];
 
@@ -246,7 +240,7 @@ class Builder
                 $subSorts = [];
 
                 foreach ($value as $subKey => $subValue) {
-                    $subSorts[] = $this->mapSort($subKey, $subValue, $visibleOnly);
+                    $subSorts[] = $this->processSort($subKey, $subValue, $visibleOnly);
                 }
 
                 $sorts[] = array_merge(
@@ -342,27 +336,29 @@ class Builder
     /**
      * @return float
      */
-    protected function lastAllowedPage(): float
+    public function lastAllowedPage(): float
     {
         return \floor($this->itemsLimit / $this->limit);
     }
 
     /**
-     * @param DSLQuery|callable $predicate
+     * @param Query|Queryable|callable $predicate
      * @return $this
      */
-    public function addDSLQuery(DSLQuery|callable $predicate): self
+    public function addQuery(Query|Queryable|callable $predicate): self
     {
-        if ($predicate instanceof DSLQuery) {
+        if ($predicate instanceof Query) {
             $query = $predicate;
+        } elseif ($predicate instanceof Queryable) {
+            $query = $predicate->toQuery();
         } else {
-            $query = new DSLQuery();
+            $query = new Query();
 
             $predicate($query);
         }
 
         if (! $query->isEmpty()) {
-            $this->dslQueries[] = $query;
+            $this->queries[] = $query;
         }
 
         return $this;
@@ -371,12 +367,12 @@ class Builder
     /**
      * @return array
      */
-    protected function buildQuery(): array
+    public function toBodyQuery(): array
     {
         $result = [];
 
-        foreach ($this->dslQueries as $dslQuery) {
-            $result[] = $dslQuery->toArray();
+        foreach ($this->queries as $query) {
+            $result[] = $query->toArray();
         }
 
         return [
@@ -387,15 +383,65 @@ class Builder
     }
 
     /**
-     * @param bool $asJson
+     * @return array
+     */
+    public function toDSLQuery(): array
+    {
+        $dslQuery = [
+            'index' => $this->resource->prefixedIndexName(),
+            'from' => $this->skipHits ? 0 : $this->calcOffset(),
+            'size' => $this->skipHits ? 0 : $this->limit,
+            'body' => [
+                'query' => $this->toBodyQuery(),
+            ],
+        ];
+
+        if ($this->customAggregations) {
+            $dslQuery['body']['aggs'] = [];
+
+            foreach ($this->customAggregations as $customAggregationName => $customAggregationData) {
+                $dslQuery['body']['aggs'][$customAggregationName] = $customAggregationData;
+            }
+        }
+
+        if ($this->selectedFields) {
+            $dslQuery['_source'] = $this->selectedFields;
+        }
+
+        if ($this->sortConfig['payload']) {
+            if (Arr::isAssoc($this->sortConfig['payload'])) {
+                $scoreSort = [
+                    '_score' => [
+                        'order' => 'desc',
+                    ],
+                ];
+            } else {
+                $scoreSort = [
+                    [
+                        '_score' => [
+                            'order' => 'desc',
+                        ],
+                    ],
+                ];
+            }
+
+            $dslQuery['body']['sort'] = $this->isSortWithScore ?
+                \array_merge($scoreSort, $this->sortConfig['payload']) :
+                $this->sortConfig['payload'];
+        }
+
+        return $dslQuery;
+    }
+
+    /**
      * @param int $flags
      * @return array|string
      */
-    public function query(bool $asJson = false, int $flags = 0): array|string
+    public function toJsonDSLQuery(int $flags = 0): array|string
     {
-        $query = $this->finalQuery();
+        $dslQuery = $this->toDSLQuery();
 
-        return $asJson ? \json_encode($query, $flags) : $query;
+        return \json_encode($dslQuery, $flags);
     }
 
     /**
@@ -403,13 +449,13 @@ class Builder
      * @param int $flags
      * @return string
      */
-    public function queryForKibana(bool $pretty = false, int $flags = 0): string
+    public function toKibana(bool $pretty = false, int $flags = 0): string
     {
         $result = [
             "POST {$this->resource->prefixedIndexName()}/_search",
         ];
 
-        $query = $this->query();
+        $query = $this->toDSLQuery();
 
         $result[] = \json_encode(
             \array_merge(
@@ -434,15 +480,12 @@ class Builder
      */
     public function get(bool $withMapping = false, Closure $mapResolver = null): Result
     {
+        $response = $this->exec();
+
         $factory = new ResultFactory(
             $this->resource,
-            $this->normalizeRawResult(
-                $this->exec()
-            ),
-            \array_map(
-                fn(string $sortId) => $this->resource->config()->sorts->findByIdOrFail($sortId),
-                $this->sortConfig['ids']
-            )
+            $this->normalizeRawResult($response),
+            $response
         );
 
         if ($withMapping) {
@@ -490,16 +533,12 @@ class Builder
             ($normalizedPage - 1) * $this->limit
         );
 
+        $response = $this->exec();
+
         $factory = new ResultFactory(
             $this->resource,
-            $this->normalizeRawResult(
-                $this->exec(),
-                $page
-            ),
-            \array_map(
-                fn(string $sortId) => $this->resource->config()->sorts->findByIdOrFail($sortId),
-                $this->sortConfig['ids']
-            )
+            $this->normalizeRawResult($response, $page),
+            $response
         );
 
         $this->offset($oldOffset);
@@ -526,8 +565,8 @@ class Builder
             ])->begin();
         }
 
-        $rawResponse = $this->client->search(
-            $this->finalQuery()
+        $rawResponse = ESearch::client()->search(
+            $this->toDSLQuery()
         );
 
         if ($this->isTrackPerformanceEnabled && \function_exists('clock')) {
@@ -562,15 +601,15 @@ class Builder
         $lastValue = null;
 
         while (! $done) {
-            $finalQuery = $this->finalQuery();
+            $dslQuery = $this->toDSLQuery();
 
-            $finalQuery['size'] = $limit;
+            $dslQuery['size'] = $limit;
 
             if ($lastValue) {
-                $finalQuery['body']['query'] = [
+                $dslQuery['body']['query'] = [
                     'bool' => [
                         'must' => [
-                            $finalQuery['body']['query'],
+                            $dslQuery['body']['query'],
 
                             [
                                 'range' => [
@@ -584,15 +623,15 @@ class Builder
                 ];
             }
 
-            $finalQuery['body']['sort'] = [
+            $dslQuery['body']['sort'] = [
                 $field => [
                     'order' => 'asc',
                 ],
             ];
 
-            $rawResult = $this->normalizeRawResult(
-                $this->client->search($finalQuery)
-            );
+            $response = ESearch::client()->search($dslQuery);
+
+            $rawResult = $this->normalizeRawResult($response);
 
             $count = \count($rawResult['hits']['hits']);
 
@@ -607,7 +646,7 @@ class Builder
                 $lastField
             );
 
-            $resultFactory = new ResultFactory($this->resource, $rawResult, []);
+            $resultFactory = new ResultFactory($this->resource, $rawResult, $response);
 
             if ($withMapping) {
                 $resultFactory->withMapping($mapResolver);
@@ -632,13 +671,7 @@ class Builder
      */
     public function chunkByWithMapping(string $field, int $limit, Closure $callback, Closure $mapResolver): void
     {
-        $this->chunkBy(
-            $field,
-            $limit,
-            $callback,
-            true,
-            $mapResolver
-        );
+        $this->chunkBy($field, $limit, $callback, true, $mapResolver);
     }
 
     /**
@@ -648,91 +681,9 @@ class Builder
      */
     public function count(): int
     {
-        $queryUniqId = Str::random();
+        $query = new CountQuery($this, $this->isTrackPerformanceEnabled);
 
-        if ($this->isTrackPerformanceEnabled && \function_exists('clock')) {
-            \clock()->event("ESearch: Count from \"{$this->resource::name()}\"", [
-                'name' => $queryUniqId,
-            ])->begin();
-        }
-
-        $result = $this->client->count(
-            $this->countQuery()
-        );
-
-        if ($this->isTrackPerformanceEnabled && \function_exists('clock')) {
-            \clock()->event("ESearch: Count from \"{$this->resource::name()}\"", [
-                'name' => $queryUniqId,
-            ])->end();
-        }
-
-        return $result['count'];
-    }
-
-    /**
-     * @return array
-     */
-    protected function finalQuery(): array
-    {
-        $query = $this->buildQuery();
-
-        $result = [
-            'index' => $this->resource->prefixedIndexName(),
-            'from' => $this->skipHits ? 0 : $this->calcOffset(),
-            'size' => $this->skipHits ? 0 : $this->limit,
-            'body' => [
-                'query' => $query,
-            ],
-        ];
-
-        if ($this->customAggregations) {
-            $result['body']['aggs'] = [];
-
-            foreach ($this->customAggregations as $customAggregationName => $customAggregationData) {
-                $result['body']['aggs'][$customAggregationName] = $customAggregationData;
-            }
-        }
-
-        if ($this->selectedFields) {
-            $result['_source'] = $this->selectedFields;
-        }
-
-        if ($this->sortConfig['payload']) {
-            if (Arr::isAssoc($this->sortConfig['payload'])) {
-                $scoreSort = [
-                    '_score' => [
-                        'order' => 'desc',
-                    ],
-                ];
-            } else {
-                $scoreSort = [
-                    [
-                        '_score' => [
-                            'order' => 'desc',
-                        ],
-                    ],
-                ];
-            }
-
-            $result['body']['sort'] = $this->sortWithScore ?
-                \array_merge($scoreSort, $this->sortConfig['payload']) :
-                $this->sortConfig['payload'];
-        }
-
-        return $result;
-    }
-
-    /**
-     * @return array
-     */
-    protected function countQuery(): array
-    {
-        return [
-            'index' => $this->resource->prefixedIndexName(),
-            'body' => [
-                'query' => $this->buildQuery(),
-            ],
-        ];
+        return $query->resolve();
     }
 
     /**
@@ -765,36 +716,8 @@ class Builder
     }
 
     /**
-     * @param mixed|string $term
-     * @param array $fields
-     * @param SearchParams|null $params
-     * @return $this
-     */
-    public function search(mixed $term, array $fields, SearchParams $params = null): self
-    {
-        if (! DefaultSearchQuery::checkTerm($term)) {
-            return $this;
-        }
-
-        $searchQueryClass = $this->resource->searchQueryClass();
-
-        /** @var DefaultSearchQuery $searchQueryBuilder */
-        $searchQueryBuilder = new $searchQueryClass(
-            $term,
-            $fields,
-            $params ?? new SearchParams()
-        );
-
-        $this->addDSLQuery(
-            $searchQueryBuilder->toQuery()
-        );
-
-        return $this;
-    }
-
-    /**
      * @param string $name
-     * @param ...$args
+     * @param array ...$args
      * @return Builder
      */
     public function applyScope(string $name, ...$args): Builder
