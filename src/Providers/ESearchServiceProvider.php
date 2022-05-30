@@ -9,7 +9,8 @@ use Illuminate\Support\ServiceProvider;
 use Savks\ESearch\{
     Manager\Manager,
     Elasticsearch\ErrorsHandler,
-    Commands
+    Commands,
+    Manager\ResourcesRepository
 };
 use Monolog\{
     Handler\StreamHandler,
@@ -23,38 +24,16 @@ class ESearchServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton('e-search.logger', function (Application $app) {
-            $config = $app['config']->get('e-search.connection');
+        $this->app->singleton(
+            Manager::class,
+            fn() => new Manager()
+        );
 
-            $logger = new Logger('e-search');
-
-            $logger->pushHandler(
-                new StreamHandler($config['logging']['path'], $config['logging']['level'])
-            );
-
-            return $logger;
-        });
-
-        $this->app->singleton('e-search', function (Application $app) {
-            $config = $app['config']->get('e-search.connection');
-
-            $client = ClientBuilder::create()->setHosts($config['hosts']);
-
-            if (isset($config['retries'])) {
-                $client->setRetries($config['retries']);
-            }
-
-            if (! empty($config['logging']['enabled'])) {
-                $client->setLogger($app['e-search.logger']);
-            }
-
-            return new Manager(
-                $app,
-                $client->build()
+        $this->app->singleton(ResourcesRepository::class, function (Application $app) {
+            return new ResourcesRepository(
+                $app['config']->get('e-search.resources', [])
             );
         });
-
-        $this->app->singleton('e-search.errors-handler', ErrorsHandler::class);
     }
 
     /**

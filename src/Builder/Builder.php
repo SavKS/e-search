@@ -4,12 +4,13 @@ namespace Savks\ESearch\Builder;
 
 use Closure;
 use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
-use ESearch;
 use InvalidArgumentException;
 use RuntimeException;
+use Savks\ESearch\Manager\Manager;
 use Savks\ESearch\Support\Resource;
 
 use Elastic\Elasticsearch\Exception\{
+    AuthenticationException,
     ClientResponseException,
     ServerResponseException
 };
@@ -28,6 +29,11 @@ class Builder
      * @var Resource
      */
     public readonly Resource $resource;
+
+    /**
+     * @var Connection
+     */
+    public readonly Connection $connection;
 
     /**
      * @var int
@@ -94,14 +100,16 @@ class Builder
 
     /**
      * @param Resource $resource
+     * @param string|null $connection
      */
-    public function __construct(Resource $resource)
+    public function __construct(Resource $resource, string $connection = null)
     {
         $this->resource = $resource;
+        $this->connection = (new Manager($connection))->connection;
 
         $this->limit = static::DEFAULT_LIMIT;
 
-        $this->isTrackPerformanceEnabled = (bool)\config('e-search.enable_track_performance');
+        $this->isTrackPerformanceEnabled = $this->connection->isTrackPerformanceEnabled;
     }
 
     /**
@@ -388,7 +396,7 @@ class Builder
     public function toDSLQuery(): array
     {
         $dslQuery = [
-            'index' => $this->resource->prefixedIndexName(),
+            'index' => $this->indexName(),
             'from' => $this->skipHits ? 0 : $this->calcOffset(),
             'size' => $this->skipHits ? 0 : $this->limit,
             'body' => [
@@ -451,9 +459,7 @@ class Builder
      */
     public function toKibana(bool $pretty = false, int $flags = 0): string
     {
-        $result = [
-            "POST {$this->resource->prefixedIndexName()}/_search",
-        ];
+        $result = ["POST {$this->indexName()}/_search"];
 
         $query = $this->toDSLQuery();
 
@@ -552,6 +558,7 @@ class Builder
 
     /**
      * @return ElasticsearchResponse
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -565,7 +572,7 @@ class Builder
             ])->begin();
         }
 
-        $rawResponse = ESearch::client()->search(
+        $rawResponse = $this->connection->client()->search(
             $this->toDSLQuery()
         );
 
@@ -587,6 +594,7 @@ class Builder
      * @return void
      * @throws ClientResponseException
      * @throws ServerResponseException
+     * @throws AuthenticationException
      */
     public function chunkBy(
         string $field,
@@ -629,7 +637,7 @@ class Builder
                 ],
             ];
 
-            $response = ESearch::client()->search($dslQuery);
+            $response = $this->connection->client()->search($dslQuery);
 
             $rawResult = $this->normalizeRawResult($response);
 
@@ -741,5 +749,15 @@ class Builder
         $this->customAggregations[$name] = $data;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function indexName(): string
+    {
+        return $this->connection->resolveIndexName(
+            $this->resource->indexName()
+        );
     }
 }

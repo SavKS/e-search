@@ -3,7 +3,8 @@
 namespace Savks\ESearch\Elasticsearch;
 
 use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
-use Illuminate\Foundation\Application;
+use Illuminate\Support\Arr;
+use Monolog\Logger;
 
 use Savks\ESearch\Exceptions\{
     BaseException,
@@ -11,14 +12,18 @@ use Savks\ESearch\Exceptions\{
     OperationFail,
     SaveFail
 };
-use Savks\ESearch\Elasticsearch\RequestTypes;
 
 class ErrorsHandler
 {
     /**
-     * @var Application
+     * @var array
      */
-    protected Application $app;
+    protected array $config;
+
+    /**
+     * @var Logger
+     */
+    protected Logger $logger;
 
     /**
      * @var bool
@@ -41,19 +46,31 @@ class ErrorsHandler
     protected bool $isLoggingEnabled;
 
     /**
-     * @param Application $app
+     * @param array $config
+     * @param Logger $logger
      */
-    public function __construct(Application $app)
+    public function __construct(array $config, Logger $logger)
     {
-        $this->app = $app;
+        $this->config = $config;
+        $this->logger = $logger;
 
-        $config = $this->app['config'];
+        $this->isErrorsHandlingDebugEnabled = (bool)Arr::get(
+            $config,
+            'e-search.connection.errors_handling.debug_enabled'
+        );
+        $this->isErrorsHandlingWriteToLog = (bool)Arr::get(
+            $config,
+            'e-search.connection.errors_handling.write_to_log'
+        );
+        $this->isErrorsHandlingUseSentry = (bool)Arr::get(
+            $config,
+            'e-search.connection.errors_handling.use_sentry'
+        );
 
-        $this->isErrorsHandlingDebugEnabled = (bool)$config->get('e-search.connection.errors_handling.debug_enabled');
-        $this->isErrorsHandlingWriteToLog = (bool)$config->get('e-search.connection.errors_handling.write_to_log');
-        $this->isErrorsHandlingUseSentry = (bool)$config->get('e-search.connection.errors_handling.use_sentry');
-
-        $this->isLoggingEnabled = (bool)$config->get('e-search.connection.logging.enabled');
+        $this->isLoggingEnabled = (bool)Arr::get(
+            $config,
+            'e-search.connection.logging.enabled'
+        );
     }
 
     /**
@@ -85,7 +102,7 @@ class ErrorsHandler
     protected function writeToLog(OperationFail $exception): void
     {
         if ($this->isErrorsHandlingWriteToLog && $this->isLoggingEnabled) {
-            app('e-search.logger')->error(
+            $this->logger->error(
                 $exception->getMessage(),
                 $exception->context()
             );
@@ -98,7 +115,7 @@ class ErrorsHandler
      */
     protected function assertError(OperationFail $exception): void
     {
-        if (\config('e-search.connection.errors_handling.debug_enabled')) {
+        if ($this->isErrorsHandlingDebugEnabled) {
             throw $exception;
         }
 

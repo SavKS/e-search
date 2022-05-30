@@ -2,9 +2,10 @@
 
 namespace Savks\ESearch\Commands;
 
-use ESearch;
 use Illuminate\Support\Arr;
 use RuntimeException;
+use Savks\ESearch\Manager\Manager;
+use Savks\ESearch\Manager\ResourcesRepository;
 use Symfony\Component\Console\Input\InputOption;
 
 use Illuminate\Console\{
@@ -21,11 +22,11 @@ abstract class Command extends BaseCommand
     use ConfirmableTrait;
 
     /**
-     * @return array<string, class-string<Resource>>
+     * @return array<string, class-string<MutableResource>>
      */
     protected function choiceResources(): array
     {
-        $resources = ESearch::resources()->mutableOnly();
+        $resources = app(ResourcesRepository::class)->mutableOnly();
 
         if (! $resources) {
             return [];
@@ -90,6 +91,16 @@ abstract class Command extends BaseCommand
     }
 
     /**
+     * @return Manager
+     */
+    protected function makeManager(): Manager
+    {
+        return new Manager(
+            $this->option('connection')
+        );
+    }
+
+    /**
      * @return array
      */
     protected function getOptions()
@@ -99,6 +110,7 @@ abstract class Command extends BaseCommand
             ['resource', null, InputOption::VALUE_OPTIONAL, 'Resource name.'],
             ['all-resources', null, InputOption::VALUE_NONE, 'Process all resources.'],
             ['criteria', null, InputOption::VALUE_OPTIONAL, 'Resource criteria.'],
+            ['connection', null, InputOption::VALUE_OPTIONAL, 'Resource connection.'],
         ];
     }
 }

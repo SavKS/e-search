@@ -2,16 +2,21 @@
 
 namespace Savks\ESearch\Commands;
 
-use ESearch;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Updates\Runner;
 use Symfony\Component\Console\Input\InputOption;
 
 use Elastic\Elasticsearch\Exception\{
+    AuthenticationException,
     ClientResponseException,
     MissingParameterException,
     ServerResponseException
+};
+use Savks\ESearch\Manager\{
+    Manager,
+    ResourcesRepository
 };
 
 class UpdatesRun extends Command
@@ -28,9 +33,11 @@ class UpdatesRun extends Command
 
     /**
      * @return void
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
+     * @throws BindingResolutionException
      */
     public function handle(): void
     {
@@ -46,14 +53,17 @@ class UpdatesRun extends Command
             return;
         }
 
+        $manager = $this->makeManager();
+
         foreach ($resourceFQNs as $name => $resourceFQN) {
             if (! $this->option('hide-resource-info')) {
                 $this->getOutput()->write("[<fg=yellow>Start updating resource</>] {$name}", true);
             }
 
-            $count = $this->runUpdates(
-                ESearch::resources()->make($name)
-            );
+            /** @var MutableResource $mutableResource */
+            $mutableResource = \app(ResourcesRepository::class)->make($name);
+
+            $count = $this->runUpdates($mutableResource, $manager);
 
             if (! $this->option('hide-resource-info')) {
                 if ($count !== null) {
@@ -69,14 +79,16 @@ class UpdatesRun extends Command
 
     /**
      * @param MutableResource $resource
+     * @param Manager $manager
      * @return int|null
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function runUpdates(MutableResource $resource): ?int
+    protected function runUpdates(MutableResource $resource, Manager $manager): ?int
     {
-        $runner = new Runner($resource);
+        $runner = new Runner($resource, $manager->connection);
 
         if (! $runner->hasUpdates()) {
             $this->warn('  - The update list is empty');

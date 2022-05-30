@@ -5,17 +5,18 @@ namespace Savks\ESearch\Updates;
 use Closure;
 use ESearch;
 use Illuminate\Database\Eloquent\Builder;
+use Savks\ESearch\Builder\Connection;
 use Savks\ESearch\Exceptions\UpdateFail;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
 
 use Elastic\Elasticsearch\{
+    Exception\AuthenticationException,
     Exception\ClientResponseException,
     Exception\MissingParameterException,
     Exception\ServerResponseException,
     Response\Elasticsearch as ElasticsearchResponse,
-    Client
-};
+    Client};
 
 class Runner
 {
@@ -25,16 +26,23 @@ class Runner
     protected MutableResource $resource;
 
     /**
+     * @var Connection
+     */
+    protected Connection $connection;
+
+    /**
      * @var Updates
      */
     protected Updates $updates;
 
     /**
      * @param MutableResource $resource
+     * @param Connection $connection
      */
-    public function __construct(MutableResource $resource)
+    public function __construct(MutableResource $resource, Connection $connection)
     {
         $this->resource = $resource;
+        $this->connection = $connection;
 
         $this->updates = $this->resource->updates(
             new Updates()
@@ -63,6 +71,7 @@ class Runner
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
+     * @throws AuthenticationException
      */
     public function apply(Closure $stepCallback = null): ?int
     {
@@ -70,13 +79,7 @@ class Runner
             return null;
         }
 
-        $query = ESearchUpdate::query();
-
-        $query->where(
-            'resource',
-            '=',
-            $this->resource::name()
-        );
+        $query = $this->newQuery();
 
         $query->oldest();
 
@@ -84,8 +87,10 @@ class Runner
         $hasAppliedUpdates = $eSearchUpdates->isNotEmpty();
         $appliedUpdatesCount = $eSearchUpdates->count();
 
-        $client = ESearch::client();
-        $indexName = $this->resource->prefixedIndexName();
+        $client = $this->connection->client();
+        $indexName = $this->connection->resolveIndexName(
+            $this->resource->indexName()
+        );
 
         $index = 0;
         $newCount = 0;
@@ -95,7 +100,8 @@ class Runner
                 /** @var ESearchUpdate $eSearchUpdate */
                 $eSearchUpdate = $eSearchUpdates->get($index);
 
-                if ($eSearchUpdate->resource !== $this->resource::name()
+                if ($eSearchUpdate->connection_name !== $this->connection->name
+                    || $eSearchUpdate->resource !== $this->resource::name()
                     || $eSearchUpdate->type !== $update::type()
                     || $eSearchUpdate->name !== $update->name()
                 ) {
@@ -103,11 +109,13 @@ class Runner
                         \sprintf(
                             'Applied update not match with update from list. Need "%s" given "%s".',
                             \implode(' — ', [
+                                $this->connection->name,
                                 $this->resource::name(),
                                 $update::type(),
                                 $update->name(),
                             ]),
                             \implode(' — ', [
+                                $eSearchUpdate->connection_name,
                                 $eSearchUpdate->resource,
                                 $eSearchUpdate->type,
                                 $eSearchUpdate->name,
@@ -127,6 +135,7 @@ class Runner
             if ($success) {
                 /** @var ESearchUpdate $eSearchUpdate */
                 $eSearchUpdate = ESearchUpdate::create([
+                    'connection_name' => $this->connection->name,
                     'resource' => $this->resource::name(),
                     'type' => $update::type(),
                     'name' => $update->name(),
@@ -167,6 +176,8 @@ class Runner
             '=',
             $this->resource::name()
         );
+
+        $query->where('connection_name', '=', $this->connection->name);
 
         return $query;
     }

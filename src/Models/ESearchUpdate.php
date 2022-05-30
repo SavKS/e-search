@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int $id
+ * @property string $connection_name
  * @property string $resource
  * @property string $type
  * @property string $name

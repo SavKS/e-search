@@ -40,6 +40,7 @@ class Sync extends Command
                 $this->call(Truncate::class, [
                     '--resource' => $name,
                     '--force' => true,
+                    '--connection' => $this->option('connection'),
                 ]);
             }
 
@@ -50,6 +51,7 @@ class Sync extends Command
                 '--hide-resource-info' => true,
                 '--with-query-log' => $this->input->getOption('with-query-log'),
                 '--criteria' => $this->input->getOption('criteria'),
+                '--connection' => $this->option('connection'),
             ]);
 
             $this->newLine();
@@ -61,6 +63,7 @@ class Sync extends Command
                     '--force' => true,
                     '--hide-resource-info' => true,
                     '--criteria' => $this->input->getOption('criteria'),
+                    '--connection' => $this->option('connection'),
                 ]);
             }
 

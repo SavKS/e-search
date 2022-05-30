@@ -3,10 +3,10 @@
 namespace Savks\ESearch\Builder;
 
 use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
-use ESearch;
 use Illuminate\Support\Str;
 
 use Elastic\Elasticsearch\Exception\{
+    AuthenticationException,
     ClientResponseException,
     ServerResponseException
 };
@@ -37,6 +37,7 @@ class CountQuery
      * @return ElasticsearchResponse
      * @throws ClientResponseException
      * @throws ServerResponseException
+     * @throws AuthenticationException
      */
     public function exec(): ElasticsearchResponse
     {
@@ -48,8 +49,8 @@ class CountQuery
             ])->begin();
         }
 
-        $result = ESearch::client()->count([
-            'index' => $this->query->resource->prefixedIndexName(),
+        $result = $this->query->connection->client()->count([
+            'index' => $this->query->indexName(),
             'body' => [
                 'query' => $this->query->toBodyQuery(),
             ],
@@ -66,6 +67,7 @@ class CountQuery
 
     /**
      * @return int
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */

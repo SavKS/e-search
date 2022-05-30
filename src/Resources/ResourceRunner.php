@@ -2,110 +2,161 @@
 
 namespace Savks\ESearch\Resources;
 
-use Illuminate\Support\Facades\Artisan;
-use RuntimeException;
+use LogicException;
+use Savks\ESearch\Builder\DSL\Query;
+use Savks\ESearch\Exceptions\EmptyQuery;
+use Savks\ESearch\Manager\Manager;
 
-use Savks\ESearch\Commands\{
-    Clear,
-    Seed,
-    Sync
+use Elastic\Elasticsearch\Exception\{
+    AuthenticationException,
+    ClientResponseException,
+    ServerResponseException
 };
-use Savks\ESearch\Support\MutableResource;
+use Illuminate\Support\{
+    Arr,
+    Collection
+};
+use Savks\ESearch\Support\{
+    MutableResource,
+    RequestConfig
+};
 
 class ResourceRunner
 {
     /**
-     * @var class-string<MutableResource>
+     * @var MutableResource
      */
-    protected readonly string $mutableResourceFQN;
+    protected readonly MutableResource $mutableResource;
 
     /**
-     * @param string $mutableResourceFQN
+     * @var Manager
      */
-    public function __construct(string $mutableResourceFQN)
+    protected Manager $manager;
+
+    /**
+     * @param MutableResource $mutableResource
+     * @param string|null $connection
+     */
+    public function __construct(MutableResource $mutableResource, string $connection = null)
     {
-        if (! \is_subclass_of($mutableResourceFQN, MutableResource::class)) {
-            throw new RuntimeException(
-                'The runner only works with resources inherited from "' . MutableResource::class . '"'
-            );
-        }
-        $this->mutableResourceFQN = $mutableResourceFQN;
+        $this->mutableResource = $mutableResource;
+
+        $this->manager = new Manager($connection);
     }
 
     /**
-     * @param array $args
-     * @param array|null $criteria
+     * @param array|string|null $ids
+     * @param array $criteria
+     * @param int $limit
+     * @return void
      */
-    public function seed(array $args = [], array $criteria = null): void
+    public function purge(array|string $ids = null, array $criteria = [], int $limit = 100): void
     {
-        if (! isset($args['resource'])) {
-            $args['--resource'] = $this->mutableResourceFQN;
-        }
+        $ids = $ids === null ? null : Arr::wrap($ids);
 
-        if (! empty($criteria)) {
-            $args['--criteria'] = json_encode($criteria);
-        }
+        $this->mutableResource->prepareClean(
+            $ids,
+            $ids !== null ? \count($ids) : $limit,
+            function (Collection|Query $predicate) use ($ids) {
+                if ($predicate instanceof Query) {
+                    $query = $predicate;
 
-        $args['--force'] = true;
+                    if ($query->isEmpty()) {
+                        throw new EmptyQuery('Delete query is empty');
+                    }
+                } else {
+                    $items = $predicate;
 
-        Artisan::call(Seed::class, $args);
+                    if ($ids !== null && $items->count() > count($ids)) {
+                        throw new LogicException('The number of items is greater than the specified number of ids');
+                    }
+
+                    $this->manager->bulkDelete(
+                        $this->mutableResource,
+                        $items->pluck(
+                            $this->mutableResource->documentIdBy()
+                        )
+                    );
+                }
+            },
+            function (int $count) {
+                //
+            },
+            $criteria
+        );
     }
 
     /**
-     * @param array $args
-     * @param array|null $criteria
+     * @param array|string|null $ids
+     * @param array $criteria
+     * @param int $limit
+     * @return void
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
      */
-    public function clear(array $args = [], array $criteria = null): void
-    {
-        if (! isset($args['--resource'])) {
-            $args['--resource'] = $this->mutableResourceFQN;
-        }
-
-        if (! empty($criteria)) {
-            $args['--criteria'] = json_encode($criteria);
-        }
-
-        $args['--force'] = true;
-
-        Artisan::call(Clear::class, $args);
+    public function purgeSync(
+        array|string $ids = null,
+        array $criteria = [],
+        int $limit = 100
+    ): void {
+        $this->manager->withConfig(
+            (new RequestConfig())->refresh(),
+            function () use ($ids, $criteria, $limit) {
+                $this->purge($ids, $criteria, $limit);
+            }
+        );
     }
 
     /**
-     * @param array $args
-     * @param array|null $criteria
+     * @param array|string|null $ids
+     * @param array $criteria
+     * @param int $limit
+     * @return void
      */
-    public function sync(array $args = [], array $criteria = null): void
+    public function push(array|string $ids = null, array $criteria = [], int $limit = 100): void
     {
-        if (! isset($args['--resource'])) {
-            $args['--resource'] = $this->mutableResourceFQN;
-        }
+        $ids = $ids === null ? null : Arr::wrap($ids);
 
-        if (! empty($criteria)) {
-            $args['--criteria'] = json_encode($criteria);
-        }
+        $this->mutableResource->prepareSeed(
+            $ids,
+            $ids !== null ? \count($ids) : $limit,
+            function (Collection $items) use ($ids) {
+                if ($ids !== null && $items->count() > count($ids)) {
+                    throw new LogicException('The number of items is greater than the specified number of ids');
+                }
 
-        $args['--force'] = true;
+                $documents = [];
 
-        Artisan::call(Sync::class, $args);
+                foreach ($items as $item) {
+                    $documents[] = $this->mutableResource->prepareDocuments($item);
+                }
+
+                $this->manager->bulkSave(
+                    $this->mutableResource,
+                    \array_merge(...$documents)
+                );
+            },
+            function (int $count) {
+                //
+            },
+            $criteria
+        );
     }
 
     /**
-     * @param array $args
-     * @param array|null $criteria
+     * @param array|string|null $ids
+     * @param array $criteria
+     * @param int $limit
+     * @return void
      */
-    public function syncWithTruncate(array $args = [], array $criteria = null): void
+    public function pushSync(array|string $ids = null, array $criteria = [], int $limit = 100): void
     {
-        if (! isset($args['--resource'])) {
-            $args['--resource'] = $this->mutableResourceFQN;
-        }
-
-        if (! empty($criteria)) {
-            $args['--criteria'] = json_encode($criteria);
-        }
-
-        $args['--truncate'] = true;
-        $args['--force'] = true;
-
-        Artisan::call(Sync::class, $args);
+        $this->manager->withConfig(
+            (new RequestConfig())->refresh(),
+            function () use ($ids, $criteria, $limit) {
+                $this->push($ids, $criteria, $limit);
+            }
+        );
     }
 }

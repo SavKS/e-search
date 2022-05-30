@@ -2,13 +2,18 @@
 
 namespace Savks\ESearch\Commands;
 
-use ESearch;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
 use Savks\ESearch\Builder\DSL\Query;
 use Savks\ESearch\Exceptions\EmptyQuery;
 use Savks\ESearch\Support\MutableResource;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputOption;
+
+use Savks\ESearch\Manager\{
+    Manager,
+    ResourcesRepository
+};
 
 class Clear extends Command
 {
@@ -24,6 +29,7 @@ class Clear extends Command
 
     /**
      * @return void
+     * @throws BindingResolutionException
      */
     public function handle(): void
     {
@@ -44,9 +50,10 @@ class Clear extends Command
                 $this->getOutput()->write("[<fg=yellow>Start clear resource data</>] {$name}", true);
             }
 
-            $this->clean(
-                ESearch::resources()->make($name)
-            );
+            /** @var MutableResource $mutableResource */
+            $mutableResource = \app(ResourcesRepository::class)->make($name);
+
+            $this->clean($mutableResource);
 
             if (! $this->option('hide-resource-info')) {
                 $this->getOutput()->write("[<fg=green>Resource was cleared</>] {$name}", true);
@@ -65,10 +72,12 @@ class Clear extends Command
         /** @var ProgressBar|null $bar */
         $bar = null;
 
+        $manager = $this->makeManager();
+
         $resource->prepareClean(
             null,
             $itemsLimit,
-            function (Collection|Query $predicate) use ($itemsLimit, &$bar, $resource) {
+            function (Collection|Query $predicate) use ($manager, $itemsLimit, &$bar, $resource) {
                 if ($predicate instanceof Query) {
                     $query = $predicate;
 
@@ -76,7 +85,7 @@ class Clear extends Command
                         throw new EmptyQuery('Delete query is empty');
                     }
 
-                    ESearch::deleteByQuery($resource, $query);
+                    $manager->deleteByQuery($resource, $query);
 
                     if ($bar->getProgress() + $itemsLimit > $bar->getMaxSteps()) {
                         $bar->finish();
@@ -87,7 +96,7 @@ class Clear extends Command
                     $items = $predicate;
 
                     if ($items->isNotEmpty()) {
-                        ESearch::bulkDelete(
+                        $manager->bulkDelete(
                             $resource,
                             $items->pluck(
                                 $resource->documentIdBy()

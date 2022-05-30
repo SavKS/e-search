@@ -3,8 +3,9 @@
 namespace Savks\ESearch\Commands;
 
 use DB;
-use ESearch;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
+use Savks\ESearch\Manager\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -31,6 +32,7 @@ class Seed extends Command
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
+     * @throws BindingResolutionException
      */
     public function handle(): void
     {
@@ -51,9 +53,10 @@ class Seed extends Command
                 $this->getOutput()->write("[<fg=yellow>Start seeding resource</>] {$name}", true);
             }
 
-            $this->seed(
-                ESearch::resources()->make($name)
-            );
+            /** @var MutableResource $mutableResource */
+            $mutableResource = \app(ResourcesRepository::class)->make($name);
+
+            $this->seed($mutableResource);
 
             if (! $this->option('hide-resource-info')) {
                 $this->getOutput()->write("\n[<fg=green>Resource was seeded</>] {$name}", true);
@@ -96,10 +99,13 @@ class Seed extends Command
         $totalQueriesCount = 0;
         $totalIterations = 0;
 
+        $manager = $this->makeManager();
+
         $resource->prepareSeed(
             null,
             $itemsLimit,
             function (Collection $items) use (
+                $manager,
                 &$bar,
                 $resource,
                 $withQueryLog,
@@ -115,7 +121,7 @@ class Seed extends Command
                     $bar?->advance();
                 }
 
-                ESearch::bulkSave(
+                $manager->bulkSave(
                     $resource,
                     \array_merge(...$documents)
                 );

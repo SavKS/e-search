@@ -14,6 +14,8 @@ return new class extends Migration {
         Schema::create('e_search_updates', function (Blueprint $table) {
             $table->id();
 
+            $table->string('connection_name');
+
             $table->string('resource');
 
             $table->string('type');

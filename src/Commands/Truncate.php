@@ -2,8 +2,17 @@
 
 namespace Savks\ESearch\Commands;
 
-use ESearch;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Savks\ESearch\Manager\ResourcesRepository;
+use Savks\ESearch\Support\MutableResource;
 use Symfony\Component\Console\Input\InputOption;
+
+use Elastic\Elasticsearch\Exception\{
+    AuthenticationException,
+    ClientResponseException,
+    MissingParameterException,
+    ServerResponseException
+};
 
 class Truncate extends Command
 {
@@ -19,6 +28,11 @@ class Truncate extends Command
 
     /**
      * @return void
+     * @throws BindingResolutionException
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws MissingParameterException
+     * @throws ServerResponseException
      */
     public function handle(): void
     {
@@ -34,14 +48,17 @@ class Truncate extends Command
             return;
         }
 
+        $manager = $this->makeManager();
+
         foreach ($resourceFQNs as $name => $resourceFQN) {
             if (! $this->option('hide-resource-info')) {
                 $this->getOutput()->write("[<fg=yellow>Start truncate resource data</>] {$name}", true);
             }
 
-            ESearch::truncate(
-                ESearch::resources()->make($name)
-            );
+            /** @var MutableResource $mutableResource */
+            $mutableResource = \app(ResourcesRepository::class)->make($name);
+
+            $manager->truncate($mutableResource);
 
             if (! $this->option('hide-resource-info')) {
                 $this->getOutput()->write("[<fg=green>Resource was truncated</>] {$name}", true);

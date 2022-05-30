@@ -13,13 +13,17 @@ abstract class Resource
     protected Config $config;
 
     /**
+     * @var string|null
+     */
+    protected ?string $indexName = null;
+
+    /**
      * @return void
      */
     final public function __construct()
     {
         //
     }
-
 
     /**
      * @return string
@@ -36,25 +40,20 @@ abstract class Resource
     /**
      * @return string
      */
-    public function prefixedIndexName(): string
+    public function indexName(): string
     {
-        return sprintf(
-            '%s_%s',
-            Str::snake(
-                strtolower(
-                    config('e-search.index_prefix')
-                )
-            ),
-            $this->indexName()
-        );
+        return $this->indexName ?? static::name();
     }
 
     /**
-     * @return string
+     * @param string $name
+     * @return $this
      */
-    public function indexName(): string
+    public function useIndex(string $name): static
     {
-        return static::name();
+        $this->indexName = $name;
+
+        return $this;
     }
 
     /**
@@ -82,6 +81,18 @@ abstract class Resource
         }
 
         return $this->config;
+    }
+
+    /**
+     * @param string $name
+     * @return Builder
+     */
+    public static function connection(string $name): Builder
+    {
+        return new Builder(
+            new static(),
+            $name
+        );
     }
 
     /**

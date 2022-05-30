@@ -2,16 +2,21 @@
 
 namespace Savks\ESearch\Commands;
 
-use ESearch;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Updates\Runner;
 use Symfony\Component\Console\Input\InputOption;
 
 use Elastic\Elasticsearch\Exception\{
+    AuthenticationException,
     ClientResponseException,
     MissingParameterException,
     ServerResponseException
+};
+use Savks\ESearch\Manager\{
+    Manager,
+    ResourcesRepository
 };
 
 class Init extends Command
@@ -28,6 +33,8 @@ class Init extends Command
 
     /**
      * @return void
+     * @throws AuthenticationException
+     * @throws BindingResolutionException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
@@ -49,9 +56,10 @@ class Init extends Command
         foreach ($resourceFQNs as $name => $resourceFQN) {
             $this->getOutput()->write("[<fg=yellow>Start resource init</>] {$name}", true);
 
-            $this->createOrRecreateIndex(
-                ESearch::resources()->make($name)
-            );
+            /** @var MutableResource $mutableResource */
+            $mutableResource = \app(ResourcesRepository::class)->make($name);
+
+            $this->createOrRecreateIndex($mutableResource);
 
             $this->getOutput()->write("[<fg=green>Resource was inited</>] {$name}", true);
         }
@@ -63,53 +71,63 @@ class Init extends Command
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
+     * @throws AuthenticationException
      */
     protected function createOrRecreateIndex(MutableResource $resource): void
     {
-        $updatesRunner = new Runner($resource);
+        $manager = $this->makeManager();
 
-        $name = $resource->prefixedIndexName();
+        $updatesRunner = new Runner($resource, $manager->connection);
 
-        $isExists = ESearch::client()->indices()->exists(['index' => $name])->getStatusCode() !== 404;
+        $indexName = $manager->connection->resolveIndexName(
+            $resource->indexName()
+        );
+
+        $isExists = $manager
+                ->connection
+                ->client()
+                ->indices()
+                ->exists(['index' => $indexName])
+                ->getStatusCode() !== 404;
 
         if ($isExists) {
             if ($this->option('force-recreate')
                 || $this->confirm('Index already exists. Do you want recreate him?')
             ) {
-                ESearch::client()->indices()->delete(['index' => $name]);
+                $manager->connection->client()->indices()->delete(['index' => $indexName]);
 
                 if ($updatesRunner->hasAppliedUpdates()) {
-                    $this->getOutput()->write("[<fg=cyan>Clean updates</>] {$name}", true);
+                    $this->getOutput()->write("[<fg=cyan>Clean updates</>] {$indexName}", true);
 
                     $updatesRunner->clean();
                 }
 
-                ESearch::client()->indices()->create([
-                    'index' => $name,
+                $manager->connection->client()->indices()->create([
+                    'index' => $indexName,
                     'body' => $resource->index(),
                 ]);
 
-                ESearch::client()->indices()->putMapping([
-                    'index' => $name,
+                $manager->connection->client()->indices()->putMapping([
+                    'index' => $indexName,
                     'body' => $resource->prepareMapping(),
                 ]);
 
-                $this->getOutput()->write("[<fg=cyan>Index recreated</>] {$name}", true);
+                $this->getOutput()->write("[<fg=cyan>Index recreated</>] {$indexName}", true);
             } else {
-                $this->getOutput()->write("[<fg=white>Skip existing index</>] {$name}", true);
+                $this->getOutput()->write("[<fg=white>Skip existing index</>] {$indexName}", true);
             }
         } else {
-            ESearch::client()->indices()->create([
-                'index' => $name,
+            $manager->connection->client()->indices()->create([
+                'index' => $indexName,
                 'body' => $resource->index(),
             ]);
 
-            ESearch::client()->indices()->putMapping([
-                'index' => $name,
+            $manager->connection->client()->indices()->putMapping([
+                'index' => $indexName,
                 'body' => $resource->prepareMapping(),
             ]);
 
-            $this->getOutput()->write("[<fg=green>Index created</>] {$name}", true);
+            $this->getOutput()->write("[<fg=green>Index created</>] {$indexName}", true);
         }
 
         $updatesRunner->apply(function (ESearchUpdate $update) {

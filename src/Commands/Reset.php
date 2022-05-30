@@ -41,6 +41,7 @@ class Reset extends Command
                 '--criteria' => $this->option('criteria') ?
                     \json_encode($this->option('criteria')) :
                     null,
+                '--connection' => $this->option('connection'),
             ]);
 
             $this->call(Seed::class, [
@@ -51,6 +52,7 @@ class Reset extends Command
                 '--criteria' => $this->option('criteria') ?
                     \json_encode($this->option('criteria')) :
                     null,
+                '--connection' => $this->option('connection'),
             ]);
         }
     }

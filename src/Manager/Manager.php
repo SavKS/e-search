@@ -4,42 +4,35 @@ namespace Savks\ESearch\Manager;
 
 use Closure;
 use Http\Promise\Promise;
-use Savks\ESearch\Builder\DSL\Query;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Savks\ESearch\Elasticsearch\RequestTypes;
-use Savks\ESearch\Manager\ResourcesRepository;
+use Savks\ESearch\Exceptions\InvalidConfiguration;
 use stdClass;
 
 use Elastic\Elasticsearch\{
+    Exception\AuthenticationException,
     Exception\ClientResponseException,
     Exception\MissingParameterException,
     Exception\ServerResponseException,
     Response\Elasticsearch as ElasticsearchResponse,
     Client
 };
+use Savks\ESearch\Builder\{
+    DSL\Query,
+    Connection
+};
 use Savks\ESearch\Support\{
-    Resource,
     RequestConfig,
-    RequestConfigContract
+    RequestConfigContract,
+    Resource
 };
 
 class Manager
 {
     /**
-     * @var Application
+     * @var Connection
      */
-    protected Application $app;
-
-    /**
-     * @var Client
-     */
-    protected Client $client;
-
-    /**
-     * @var ResourcesRepository
-     */
-    protected ResourcesRepository $resources;
+    public readonly Connection $connection;
 
     /**
      * @var RequestConfigContract
@@ -47,47 +40,46 @@ class Manager
     protected RequestConfigContract $requestConfig;
 
     /**
-     * @param Application $app
-     * @param Client $client
+     * @param string|null $connection
      */
-    public function __construct(Application $app, Client $client)
+    public function __construct(string $connection = null)
     {
-        $this->app = $app;
-        $this->client = $client;
-        $this->requestConfig = new RequestConfig();
+        $this->connection = $connection ?? $this->createConnection($connection);
 
-        $this->resources = new ResourcesRepository(
-            $this->app['config']->get('e-search.resources', [])
-        );
+        $this->requestConfig = new RequestConfig();
     }
 
     /**
      * @return Client
+     * @throws AuthenticationException
      */
     public function client(): Client
     {
-        return $this->client;
+        return $this->connection->client();
     }
 
     /**
      * @param Resource $resource
      * @param array $document
      * @return ElasticsearchResponse|Promise
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
     public function save(Resource $resource, array $document): ElasticsearchResponse|Promise
     {
-        $response = $this->client()->index(
+        $response = $this->connection->client()->index(
             $this->requestConfig->applyToRequest(RequestTypes::SAVE, [
                 'id' => $document[$resource->documentIdBy()],
-                'index' => $resource->prefixedIndexName(),
+                'index' => $this->connection->resolveIndexName(
+                    $resource->indexName()
+                ),
                 'body' => $document,
             ])
         );
 
-        $this->app['e-search.errors-handler']->processResponse(RequestTypes::SAVE, $response);
+        $this->connection->errorsHandler()->processResponse(RequestTypes::SAVE, $response);
 
         return $response;
     }
@@ -96,6 +88,7 @@ class Manager
      * @param Resource $resource
      * @param array|Collection $documents
      * @return ElasticsearchResponse
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -107,18 +100,20 @@ class Manager
             $params['body'][] = [
                 'index' => [
                     '_id' => $document[$resource->documentIdBy()],
-                    '_index' => $resource->prefixedIndexName(),
+                    '_index' => $this->connection->resolveIndexName(
+                        $resource->indexName()
+                    ),
                 ],
             ];
 
             $params['body'][] = $document;
         }
 
-        $response = $this->client()->bulk(
+        $response = $this->connection->client()->bulk(
             $this->requestConfig->applyToRequest(RequestTypes::BULK_SAVE, $params)
         );
 
-        $this->app['e-search.errors-handler']->processResponse(RequestTypes::BULK_SAVE, $response);
+        $this->connection->errorsHandler()->processResponse(RequestTypes::BULK_SAVE, $response);
 
         return $response;
     }
@@ -127,16 +122,19 @@ class Manager
      * @param Resource $resource
      * @param int|string $id
      * @return ElasticsearchResponse
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
     public function delete(Resource $resource, int|string $id): ElasticsearchResponse
     {
-        return $this->client()->delete(
+        return $this->connection->client()->delete(
             $this->requestConfig->applyToRequest(RequestTypes::DELETE, [
                 'id' => $id,
-                'index' => $resource->prefixedIndexName(),
+                'index' => $this->connection->resolveIndexName(
+                    $resource->indexName()
+                ),
             ])
         );
     }
@@ -145,6 +143,7 @@ class Manager
      * @param Resource $resource
      * @param array|Collection $ids
      * @return ElasticsearchResponse
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -156,12 +155,14 @@ class Manager
             $params['body'][] = [
                 'delete' => [
                     '_id' => $id,
-                    '_index' => $resource->prefixedIndexName(),
+                    '_index' => $this->connection->resolveIndexName(
+                        $resource->indexName()
+                    ),
                 ],
             ];
         }
 
-        return $this->client()->bulk(
+        return $this->connection->client()->bulk(
             $this->requestConfig->applyToRequest(RequestTypes::BULK_DELETE, $params)
         );
     }
@@ -170,16 +171,21 @@ class Manager
      * @param Resource $resource
      * @param Query $query
      * @return ElasticsearchResponse|Promise
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
     public function deleteByQuery(Resource $resource, Query $query): ElasticsearchResponse|Promise
     {
-        return $this->client()->deleteByQuery(
+        return $this->connection->client()->deleteByQuery(
             $this->requestConfig->applyToRequest(RequestTypes::DELETE_BY_QUERY, [
-                'index' => $resource->prefixedIndexName(),
-                'body' => $query->toArray(),
+                'index' => $this->connection->resolveIndexName(
+                    $resource->indexName()
+                ),
+                'body' => [
+                    'query' => $query->toArray(),
+                ],
             ])
         );
     }
@@ -187,15 +193,18 @@ class Manager
     /**
      * @param Resource $resource
      * @return ElasticsearchResponse
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
     public function truncate(Resource $resource): ElasticsearchResponse
     {
-        return $this->client()->deleteByQuery(
+        return $this->connection->client()->deleteByQuery(
             $this->requestConfig->applyToRequest(RequestTypes::TRUNCATE, [
-                'index' => $resource->prefixedIndexName(),
+                'index' => $this->connection->resolveIndexName(
+                    $resource->indexName()
+                ),
                 'body' => [
                     'query' => [
                         'match_all' => new stdClass(),
@@ -230,10 +239,23 @@ class Manager
     }
 
     /**
-     * @return ResourcesRepository
+     * @param string|null $name
+     * @return Connection
      */
-    public function resources(): ResourcesRepository
+    protected function createConnection(string $name = null): Connection
     {
-        return $this->resources;
+        $name = $name ?? \config('e-search.default_connection');
+
+        if (! $name) {
+            throw new InvalidConfiguration("Default connection name is not defined");
+        }
+
+        $config = \config("e-search.connections.{$name}");
+
+        if (! $config) {
+            throw new InvalidConfiguration("Connection with name \"{$name}\" not defined");
+        }
+
+        return new Connection($name, $config);
     }
 }

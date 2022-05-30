@@ -3,6 +3,7 @@
 namespace Savks\ESearch\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use Savks\ESearch\Manager\Manager;
 
 class ESearch extends Facade
 {
@@ -13,6 +14,6 @@ class ESearch extends Facade
      */
     protected static function getFacadeAccessor(): string
     {
-        return 'e-search';
+        return Manager::class;
     }
 }
