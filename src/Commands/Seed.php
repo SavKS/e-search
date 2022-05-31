@@ -5,7 +5,7 @@ namespace Savks\ESearch\Commands;
 use DB;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
-use Savks\ESearch\Manager\ResourcesRepository;
+use Savks\ESearch\Resources\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
 use Symfony\Component\Console\Input\InputOption;
 

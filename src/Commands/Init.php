@@ -3,6 +3,7 @@
 namespace Savks\ESearch\Commands;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Updates\Runner;
@@ -14,8 +15,7 @@ use Elastic\Elasticsearch\Exception\{
     MissingParameterException,
     ServerResponseException
 };
-use Savks\ESearch\Manager\{
-    Manager,
+use Savks\ESearch\Resources\{
     ResourcesRepository
 };
 

@@ -2,19 +2,15 @@
 
 namespace Savks\ESearch\Providers;
 
-use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
 use Savks\ESearch\{
-    Manager\Manager,
-    Elasticsearch\ErrorsHandler,
-    Commands,
-    Manager\ResourcesRepository
-};
-use Monolog\{
-    Handler\StreamHandler,
-    Logger
+    Debug\ClockworkPerformanceTracker,
+    Debug\PerformanceTracker,
+    Elasticsearch\ConnectionsManager,
+    Resources\ResourcesRepository,
+    Commands
 };
 
 class ESearchServiceProvider extends ServiceProvider
@@ -24,15 +20,23 @@ class ESearchServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(
-            Manager::class,
-            fn() => new Manager()
-        );
-
         $this->app->singleton(ResourcesRepository::class, function (Application $app) {
             return new ResourcesRepository(
                 $app['config']->get('e-search.resources', [])
             );
+        });
+
+        $this->app->singleton(ConnectionsManager::class, function (Application $app) {
+            return new ConnectionsManager(
+                $app['config']->get('e-search.connections', []),
+                $app['config']->get('e-search.default_connection', []),
+            );
+        });
+
+        $this->app->singleton(PerformanceTracker::class, function (Application $app) {
+            $trackerFQN = $app['config']->get('e-search.performance_tracker');
+
+            return new $trackerFQN();
         });
     }
 

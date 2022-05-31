@@ -1,11 +1,14 @@
 <?php
 
 use Monolog\Logger;
+use Savks\ESearch\Debug\ClockworkPerformanceTracker;
 
 return [
     'default_connection' => env('E_SEARCH_DEFAULT_CONNECTION', 'default'),
 
     'resources' => [],
+
+    'performance_tracker' => ClockworkPerformanceTracker::class,
 
     'connections' => [
         'default' => [

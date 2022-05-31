@@ -4,19 +4,16 @@ namespace Savks\ESearch\Builder;
 
 use Closure;
 use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
+use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use RuntimeException;
-use Savks\ESearch\Manager\Manager;
+use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Support\Resource;
 
 use Elastic\Elasticsearch\Exception\{
     AuthenticationException,
     ClientResponseException,
     ServerResponseException
-};
-use Illuminate\Support\{
-    Arr,
-    Str
 };
 use Savks\ESearch\Builder\DSL\{
     Query,
@@ -31,9 +28,9 @@ class Builder
     public readonly Resource $resource;
 
     /**
-     * @var Connection
+     * @var Client
      */
-    public readonly Connection $connection;
+    public readonly Client $client;
 
     /**
      * @var int
@@ -41,9 +38,14 @@ class Builder
     final protected const DEFAULT_LIMIT = 12;
 
     /**
+     * @var int|null
+     */
+    protected ?int $maxItemsLimit = null;
+
+    /**
      * @var int
      */
-    protected int $itemsLimit = 10000;
+    protected int $maxItemsLimitSettingValue;
 
     /**
      * @var array
@@ -84,11 +86,6 @@ class Builder
     protected array $queries = [];
 
     /**
-     * @var bool
-     */
-    protected bool $isTrackPerformanceEnabled;
-
-    /**
      * @var array
      */
     protected array $customAggregations = [];
@@ -105,31 +102,9 @@ class Builder
     public function __construct(Resource $resource, string $connection = null)
     {
         $this->resource = $resource;
-        $this->connection = (new Manager($connection))->connection;
+        $this->client = new Client($connection);
 
         $this->limit = static::DEFAULT_LIMIT;
-
-        $this->isTrackPerformanceEnabled = $this->connection->isTrackPerformanceEnabled;
-    }
-
-    /**
-     * @return $this
-     */
-    public function enablePerformanceTracking(): static
-    {
-        $this->isTrackPerformanceEnabled = true;
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function disablePerformanceTracking(): static
-    {
-        $this->isTrackPerformanceEnabled = true;
-
-        return $this;
     }
 
     /**
@@ -316,8 +291,8 @@ class Builder
      */
     protected function calcOffset(): int
     {
-        return $this->offset + $this->limit > $this->itemsLimit ?
-            $this->itemsLimit - $this->limit :
+        return $this->offset + $this->limit > $this->resolveMaxItemsLimit() ?
+            $this->resolveMaxItemsLimit() - $this->limit :
             $this->offset;
     }
 
@@ -325,9 +300,9 @@ class Builder
      * @param int $value
      * @return $this
      */
-    public function setItemsLimit(int $value): Builder
+    public function setMaxItemsLimit(int $value): Builder
     {
-        $this->itemsLimit = $value;
+        $this->maxItemsLimit = $value;
 
         return $this;
     }
@@ -338,7 +313,7 @@ class Builder
      */
     protected function isExceededPageLimit(int $page): bool
     {
-        return $this->limit * $page > $this->itemsLimit;
+        return $this->limit * $page > $this->resolveMaxItemsLimit();
     }
 
     /**
@@ -346,7 +321,7 @@ class Builder
      */
     public function lastAllowedPage(): float
     {
-        return \floor($this->itemsLimit / $this->limit);
+        return \floor($this->resolveMaxItemsLimit() / $this->limit);
     }
 
     /**
@@ -393,10 +368,9 @@ class Builder
     /**
      * @return array
      */
-    public function toDSLQuery(): array
+    public function toRequest(): array
     {
-        $dslQuery = [
-            'index' => $this->indexName(),
+        $request = [
             'from' => $this->skipHits ? 0 : $this->calcOffset(),
             'size' => $this->skipHits ? 0 : $this->limit,
             'body' => [
@@ -405,15 +379,15 @@ class Builder
         ];
 
         if ($this->customAggregations) {
-            $dslQuery['body']['aggs'] = [];
+            $request['body']['aggs'] = [];
 
             foreach ($this->customAggregations as $customAggregationName => $customAggregationData) {
-                $dslQuery['body']['aggs'][$customAggregationName] = $customAggregationData;
+                $request['body']['aggs'][$customAggregationName] = $customAggregationData;
             }
         }
 
         if ($this->selectedFields) {
-            $dslQuery['_source'] = $this->selectedFields;
+            $request['_source'] = $this->selectedFields;
         }
 
         if ($this->sortConfig['payload']) {
@@ -433,23 +407,12 @@ class Builder
                 ];
             }
 
-            $dslQuery['body']['sort'] = $this->isSortWithScore ?
+            $request['body']['sort'] = $this->isSortWithScore ?
                 \array_merge($scoreSort, $this->sortConfig['payload']) :
                 $this->sortConfig['payload'];
         }
 
-        return $dslQuery;
-    }
-
-    /**
-     * @param int $flags
-     * @return array|string
-     */
-    public function toJsonDSLQuery(int $flags = 0): array|string
-    {
-        $dslQuery = $this->toDSLQuery();
-
-        return \json_encode($dslQuery, $flags);
+        return $request;
     }
 
     /**
@@ -459,20 +422,24 @@ class Builder
      */
     public function toKibana(bool $pretty = false, int $flags = 0): string
     {
-        $result = ["POST {$this->indexName()}/_search"];
-
-        $query = $this->toDSLQuery();
-
-        $result[] = \json_encode(
-            \array_merge(
-                [
-                    'from' => $query['from'],
-                    'size' => $query['size'],
-                ],
-                $query['body']
-            ),
-            \JSON_UNESCAPED_UNICODE | ($pretty ? \JSON_PRETTY_PRINT : 0) | $flags
+        $indexName = $this->client->connection->resolveIndexName(
+            $this->resource->indexName()
         );
+
+        $result = ["POST {$indexName}/_search"];
+
+        [
+            'from' => $from,
+            'size' => $size,
+            'body' => $body,
+        ] = $this->toRequest();
+
+        $result[] = \json_encode([
+            'from' => $from,
+            'size' => $size,
+
+            ...$body,
+        ], \JSON_UNESCAPED_UNICODE | ($pretty ? \JSON_PRETTY_PRINT : 0) | $flags);
 
         return \implode("\n", $result);
     }
@@ -481,6 +448,7 @@ class Builder
      * @param bool $withMapping
      * @param Closure|null $mapResolver
      * @return Result
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -505,6 +473,7 @@ class Builder
      * @param bool $withMapping
      * @param Closure|null $mapResolver
      * @return Result
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -512,7 +481,9 @@ class Builder
     {
         $oldLimit = $this->limit;
 
-        $this->limit($this->itemsLimit);
+        $this->limit(
+            $this->resolveMaxItemsLimit()
+        );
 
         $result = $this->get($withMapping, $mapResolver);
 
@@ -526,6 +497,7 @@ class Builder
      * @param bool $withMapping
      * @param Closure|null $mapResolver
      * @return Result
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -564,25 +536,10 @@ class Builder
      */
     protected function exec(): ElasticsearchResponse
     {
-        $queryUniqId = Str::random();
-
-        if ($this->isTrackPerformanceEnabled && \function_exists('clock')) {
-            \clock()->event("ESearch: Search in \"{$this->resource::name()}\"", [
-                'name' => $queryUniqId,
-            ])->begin();
-        }
-
-        $rawResponse = $this->connection->client()->search(
-            $this->toDSLQuery()
+        return $this->client->search(
+            $this->resource,
+            $this->toRequest()
         );
-
-        if ($this->isTrackPerformanceEnabled && \function_exists('clock')) {
-            \clock()->event("ESearch: Search in \"{$this->resource::name()}\"", [
-                'name' => $queryUniqId,
-            ])->end();
-        }
-
-        return $rawResponse;
     }
 
     /**
@@ -609,7 +566,7 @@ class Builder
         $lastValue = null;
 
         while (! $done) {
-            $dslQuery = $this->toDSLQuery();
+            $dslQuery = $this->toRequest();
 
             $dslQuery['size'] = $limit;
 
@@ -637,7 +594,7 @@ class Builder
                 ],
             ];
 
-            $response = $this->connection->client()->search($dslQuery);
+            $response = $this->client->search($this->resource, $dslQuery);
 
             $rawResult = $this->normalizeRawResult($response);
 
@@ -674,6 +631,7 @@ class Builder
      * @param Closure $callback
      * @param Closure $mapResolver
      * @return void
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -684,14 +642,18 @@ class Builder
 
     /**
      * @return int
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
     public function count(): int
     {
-        $query = new CountQuery($this, $this->isTrackPerformanceEnabled);
+        $response = $this->client->count(
+            $this->resource,
+            $this->toBodyQuery()
+        );
 
-        return $query->resolve();
+        return $response['count'];
     }
 
     /**
@@ -709,7 +671,7 @@ class Builder
         );
 
         if ($page && $page > $this->lastAllowedPage()) {
-            $result['hits']['hits']['value'] = $this->itemsLimit;
+            $result['hits']['hits']['value'] = $this->resolveMaxItemsLimit();
         }
 
         return $result;
@@ -752,12 +714,26 @@ class Builder
     }
 
     /**
-     * @return string
+     * @return int
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
      */
-    public function indexName(): string
+    protected function resolveMaxItemsLimit(): int
     {
-        return $this->connection->resolveIndexName(
-            $this->resource->indexName()
-        );
+        if ($this->maxItemsLimit !== null) {
+            return $this->maxItemsLimit;
+        }
+
+        if (!isset($this->maxItemsLimitSettingValue)) {
+            $settingValue = $this->client->connection->resolveIndexSettings(
+                $this->resource->indexName(),
+                'index.max_result_window'
+            );
+
+            $this->maxItemsLimitSettingValue = $settingValue ?? 10_000;
+        }
+
+        return $this->maxItemsLimitSettingValue;
     }
 }

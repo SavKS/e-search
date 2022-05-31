@@ -3,6 +3,7 @@
 namespace Savks\ESearch\Commands;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Updates\Runner;
@@ -14,8 +15,7 @@ use Elastic\Elasticsearch\Exception\{
     MissingParameterException,
     ServerResponseException
 };
-use Savks\ESearch\Manager\{
-    Manager,
+use Savks\ESearch\Resources\{
     ResourcesRepository
 };
 
@@ -79,14 +79,14 @@ class UpdatesRun extends Command
 
     /**
      * @param MutableResource $resource
-     * @param Manager $manager
+     * @param Client $manager
      * @return int|null
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function runUpdates(MutableResource $resource, Manager $manager): ?int
+    protected function runUpdates(MutableResource $resource, Client $manager): ?int
     {
         $runner = new Runner($resource, $manager->connection);
 

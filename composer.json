@@ -13,10 +13,7 @@
         "laravel": {
             "providers": [
                 "Savks\\ESearch\\Providers\\ESearchServiceProvider"
-            ],
-            "aliases": {
-                "ESearch": "Savks\\ESearch\\Facades\\ESearch"
-            }
+            ]
         }
     }
 }

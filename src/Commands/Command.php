@@ -4,8 +4,8 @@ namespace Savks\ESearch\Commands;
 
 use Illuminate\Support\Arr;
 use RuntimeException;
-use Savks\ESearch\Manager\Manager;
-use Savks\ESearch\Manager\ResourcesRepository;
+use Savks\ESearch\Elasticsearch\Client;
+use Savks\ESearch\Resources\ResourcesRepository;
 use Symfony\Component\Console\Input\InputOption;
 
 use Illuminate\Console\{
@@ -91,11 +91,11 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * @return Manager
+     * @return \Savks\ESearch\Elasticsearch\Client
      */
-    protected function makeManager(): Manager
+    protected function makeManager(): Client
     {
-        return new Manager(
+        return new Client(
             $this->option('connection')
         );
     }

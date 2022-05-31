@@ -5,7 +5,7 @@ namespace Savks\ESearch\Updates;
 use Closure;
 use ESearch;
 use Illuminate\Database\Eloquent\Builder;
-use Savks\ESearch\Builder\Connection;
+use Savks\ESearch\Elasticsearch\Connection;
 use Savks\ESearch\Exceptions\UpdateFail;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
@@ -26,7 +26,7 @@ class Runner
     protected MutableResource $resource;
 
     /**
-     * @var Connection
+     * @var \Savks\ESearch\Elasticsearch\Connection
      */
     protected Connection $connection;
 

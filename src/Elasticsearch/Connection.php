@@ -1,19 +1,20 @@
 <?php
 
-namespace Savks\ESearch\Builder;
+namespace Savks\ESearch\Elasticsearch;
 
 use Elastic\Elasticsearch\{
-    Exception\AuthenticationException,
     Client,
-    ClientBuilder
+    ClientBuilder,
+    Exception\AuthenticationException,
+    Exception\ClientResponseException,
+    Exception\ServerResponseException
 };
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Monolog\{
     Handler\StreamHandler,
     Logger
 };
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Savks\ESearch\Elasticsearch\ErrorsHandler;
 
 class Connection
 {
@@ -79,16 +80,6 @@ class Connection
     }
 
     /**
-     * @param string $path
-     * @param mixed $default
-     * @return mixed
-     */
-    public function config(string $path, mixed $default): mixed
-    {
-        return Arr::get($path, $this->config, $default);
-    }
-
-    /**
      * @return Logger
      */
     public function logger(): Logger
@@ -144,5 +135,28 @@ class Connection
         }
 
         return $this->errorsHandler;
+    }
+
+    /**
+     * @param string $indexName
+     * @param string|null $settingName
+     * @return mixed
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
+     */
+    public function resolveIndexSettings(string $indexName, string $settingName = null): mixed
+    {
+        $prefixedIndexName = $this->resolveIndexName($indexName);
+
+        $response = $this->client()->indices()->getSettings([
+            'index' => $prefixedIndexName,
+        ]);
+
+        if (! $settingName) {
+            return $response[$prefixedIndexName]['settings'];
+        }
+
+        return Arr::get($response, "{$prefixedIndexName}.settings.{$settingName}");
     }
 }

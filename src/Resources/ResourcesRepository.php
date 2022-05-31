@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\ESearch\Manager;
+namespace Savks\ESearch\Resources;
 
 use LogicException;
 use RuntimeException;

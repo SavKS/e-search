@@ -5,13 +5,13 @@ namespace Savks\ESearch\Commands;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
 use Savks\ESearch\Builder\DSL\Query;
+use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Exceptions\EmptyQuery;
 use Savks\ESearch\Support\MutableResource;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputOption;
 
-use Savks\ESearch\Manager\{
-    Manager,
+use Savks\ESearch\Resources\{
     ResourcesRepository
 };
 
