@@ -660,6 +660,9 @@ class Builder
      * @param ElasticsearchResponse $response
      * @param int|null $page
      * @return array
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
      */
     protected function normalizeRawResult(ElasticsearchResponse $response, int $page = null): array
     {
