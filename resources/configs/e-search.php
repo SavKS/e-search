@@ -4,12 +4,24 @@ use Monolog\Logger;
 use Savks\ESearch\Debug\ClockworkPerformanceTracker;
 
 return [
+    /**
+     * Default connection name
+     */
     'default_connection' => env('E_SEARCH_DEFAULT_CONNECTION', 'default'),
 
+    /**
+     * List of resources
+     */
     'resources' => [],
 
+    /**
+     * Performance tracker class
+     */
     'performance_tracker' => ClockworkPerformanceTracker::class,
 
+    /**
+     * Elasticsearch connections settings
+     */
     'connections' => [
         'default' => [
             /**
@@ -18,7 +30,7 @@ return [
             'index_prefix' => env('E_SEARCH_INDEX_PREFIX', env('APP_NAME')),
 
             /**
-             * Show performance events in clockwork
+             * Show performance events
              */
             'enable_track_performance' => (bool)env(
                 'E_SEARCH_TRACK_PERFORMANCE_ENABLE',
@@ -67,7 +79,9 @@ return [
                 */
                 'logging' => [
                     'enabled' => env('E_SEARCH_LOG', true),
-                    'path' => storage_path(env('E_SEARCH_LOG_PATH', 'logs/elasticsearch.log')),
+                    'path' => storage_path(
+                        env('E_SEARCH_LOG_PATH', 'logs/elasticsearch.log')
+                    ),
                     'level' => env('E_SEARCH_LOG_LEVEL', Logger::WARNING),
                 ],
 

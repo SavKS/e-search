@@ -3,14 +3,16 @@
 namespace Savks\ESearch\Elasticsearch;
 
 use Elastic\Elasticsearch\{
-    Client,
-    ClientBuilder,
     Exception\AuthenticationException,
     Exception\ClientResponseException,
-    Exception\ServerResponseException
+    Exception\ServerResponseException,
+    Client,
+    ClientBuilder
 };
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Illuminate\Support\{
+    Arr,
+    Str
+};
 use Monolog\{
     Handler\StreamHandler,
     Logger

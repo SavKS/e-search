@@ -6,7 +6,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
 use Savks\ESearch\{
-    Debug\ClockworkPerformanceTracker,
     Debug\PerformanceTracker,
     Elasticsearch\ConnectionsManager,
     Resources\ResourcesRepository,
@@ -48,12 +47,9 @@ class ESearchServiceProvider extends ServiceProvider
         $this->publishConfigs();
 
         $this->commands([
-            Commands\Clear::class,
-            Commands\Init::class,
-            Commands\Seed::class,
-            Commands\Sync::class,
+            Commands\Fill::class,
             Commands\Truncate::class,
-            Commands\Reset::class,
+            Commands\RemoveRedundantIndices::class,
             Commands\UpdatesRun::class,
         ]);
 

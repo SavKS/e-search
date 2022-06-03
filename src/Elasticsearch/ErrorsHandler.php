@@ -80,7 +80,7 @@ class ErrorsHandler
      */
     public function processResponse(RequestTypes $requestType, ElasticsearchResponse $response): void
     {
-        if (! $response['errors']) {
+        if (empty($response['errors']) && empty($response['failures'])) {
             return;
         }
 

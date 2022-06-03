@@ -3,14 +3,13 @@
 namespace Savks\ESearch\Resources;
 
 use Illuminate\Support\Facades\Artisan;
-use RuntimeException;
+use Savks\ESearch\Support\MutableResource;
 
 use Savks\ESearch\Commands\{
     Clear,
     Seed,
     Sync
 };
-use Savks\ESearch\Support\MutableResource;
 
 class ResourceCommandRunner
 {

@@ -2,9 +2,13 @@
 
 namespace Savks\ESearch\Commands;
 
+use Closure;
 use Illuminate\Support\Arr;
+use LogicException;
 use RuntimeException;
 use Savks\ESearch\Elasticsearch\Client;
+use Savks\ESearch\Exceptions\CommandFailed;
+use Savks\ESearch\Exceptions\CommandTerminated;
 use Savks\ESearch\Resources\ResourcesRepository;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -22,9 +26,65 @@ abstract class Command extends BaseCommand
     use ConfirmableTrait;
 
     /**
+     * @param Closure $handler
+     * @return void
+     */
+    protected function runtimeWrapper(Closure $handler): void
+    {
+        try {
+            $handler();
+        } catch (CommandTerminated $e) {
+            $this->getOutput()->write(
+                sprintf(
+                    '[<fg=white>%s</>] <fg=yellow>%s</>: %s',
+                    now()->toDateTimeString(),
+                    'Terminated',
+                    $e->getMessage()
+                ),
+                true
+            );
+        } catch (CommandFailed $e) {
+            $this->getOutput()->write(
+                sprintf(
+                    '[<fg=white>%s</>][%s] <fg=red>%s</>',
+                    now()->toDateTimeString(),
+                    'Failed',
+                    $e->getMessage()
+                ),
+                true
+            );
+        }
+    }
+
+    /**
+     * @param MutableResource $resource
+     * @param Client $client
+     * @return string
+     */
+    protected function resolveIndexName(MutableResource $resource, Client $client): string
+    {
+        return $client->connection->resolveIndexName(
+            $resource->indexName()
+        );
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    protected function removeDatetimeSuffixFromIndexName(string $name): string
+    {
+        return \preg_replace(
+            '/_(\d{4}_\d{2}_\d{2}_\d{6})$/',
+            '',
+            $name
+        );
+    }
+
+    /**
      * @return array<string, class-string<MutableResource>>
      */
-    protected function choiceResources(): array
+    protected function choiceResources(bool $isSingularChoice = false): array
     {
         $resources = app(ResourcesRepository::class)->mutableOnly();
 
@@ -33,22 +93,22 @@ abstract class Command extends BaseCommand
         }
 
         if ($this->option('all-resources')) {
+            if ($isSingularChoice) {
+                throw new LogicException('The "--all-resources" option is not compatible with the "--index-name" option.');
+            }
+
             return $resources;
         }
 
         if ($selectedResource = $this->option('resource')) {
             if (\is_subclass_of($selectedResource, Resource::class)) {
                 if (! \is_subclass_of($selectedResource, MutableResource::class)) {
-                    $this->error('The selected resource is not writable');
-
-                    return [];
+                    throw new LogicException("The selected \"{$selectedResource}\" resource is not mutable.");
                 }
 
                 return \array_filter(
                     $resources,
-                    static function (string $resource) use ($selectedResource) {
-                        return \ltrim($resource, '\\') === \ltrim($selectedResource, '\\');
-                    }
+                    fn(string $resource) => \ltrim($resource, '\\') === \ltrim($selectedResource, '\\')
                 );
             }
 
@@ -91,9 +151,9 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * @return \Savks\ESearch\Elasticsearch\Client
+     * @return Client
      */
-    protected function makeManager(): Client
+    protected function makeClient(): Client
     {
         return new Client(
             $this->option('connection')
@@ -111,6 +171,7 @@ abstract class Command extends BaseCommand
             ['all-resources', null, InputOption::VALUE_NONE, 'Process all resources.'],
             ['criteria', null, InputOption::VALUE_OPTIONAL, 'Resource criteria.'],
             ['connection', null, InputOption::VALUE_OPTIONAL, 'Resource connection.'],
+            ['index-name', null, InputOption::VALUE_OPTIONAL, 'Custom index name.'],
         ];
     }
 }

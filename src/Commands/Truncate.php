@@ -2,17 +2,8 @@
 
 namespace Savks\ESearch\Commands;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Savks\ESearch\Resources\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
-use Symfony\Component\Console\Input\InputOption;
-
-use Elastic\Elasticsearch\Exception\{
-    AuthenticationException,
-    ClientResponseException,
-    MissingParameterException,
-    ServerResponseException
-};
 
 class Truncate extends Command
 {
@@ -24,15 +15,10 @@ class Truncate extends Command
     /**
      * @var string
      */
-    protected $description = 'Truncate data';
+    protected $description = 'Truncate indices';
 
     /**
      * @return void
-     * @throws BindingResolutionException
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
      */
     public function handle(): void
     {
@@ -43,39 +29,54 @@ class Truncate extends Command
         $resourceFQNs = $this->choiceResources();
 
         if (! $resourceFQNs) {
-            $this->warn('No writable resources found...');
+            $this->warn('No mutable resources found...');
 
             return;
         }
 
-        $manager = $this->makeManager();
+        $client = $this->makeClient();
 
         foreach ($resourceFQNs as $name => $resourceFQN) {
-            if (! $this->option('hide-resource-info')) {
-                $this->getOutput()->write("[<fg=yellow>Start truncate resource data</>] {$name}", true);
-            }
+            $this->runtimeWrapper(function () use ($name, $client) {
+                /** @var MutableResource $resource */
+                $resource = \app(ResourcesRepository::class)->make($name);
 
-            /** @var MutableResource $mutableResource */
-            $mutableResource = \app(ResourcesRepository::class)->make($name);
+                if ($this->option('index-name')) {
+                    $resource->useIndex(
+                        $this->option('index-name')
+                    );
+                }
 
-            $manager->truncate($mutableResource);
+                $indexFullName = $client->connection->resolveIndexName(
+                    $resource->indexName()
+                );
 
-            if (! $this->option('hide-resource-info')) {
-                $this->getOutput()->write("[<fg=green>Resource was truncated</>] {$name}", true);
-            }
+                $this->getOutput()->write(
+                    sprintf(
+                        '[<fg=white>%s</>] Start truncate resource <fg=green>%s</> index alias <fg=blue>%s</>.',
+                        now()->toDateTimeString(),
+                        $name,
+                        $indexFullName
+                    ),
+                    true
+                );
+
+                if ($this->option('index-name')) {
+                    $resource->useIndex(
+                        $this->option('index-name')
+                    );
+                }
+
+                $client->truncate($resource);
+
+                $this->getOutput()->write(
+                    sprintf(
+                        '[<fg=white>%s</>] Resource truncated.',
+                        now()->toDateTimeString()
+                    ),
+                    true
+                );
+            });
         }
-    }
-
-    /**
-     * @return array
-     */
-    protected function getOptions()
-    {
-        return \array_merge(
-            parent::getOptions(),
-            [
-                ['hide-resource-info', null, InputOption::VALUE_NONE, 'Hide resource info.'],
-            ]
-        );
     }
 }

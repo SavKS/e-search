@@ -4,8 +4,11 @@ namespace Savks\ESearch\Resources;
 
 use LogicException;
 use RuntimeException;
-use Savks\ESearch\Support\MutableResource;
-use Savks\ESearch\Support\Resource;
+
+use Savks\ESearch\Support\{
+    MutableResource,
+    Resource
+};
 
 class ResourcesRepository
 {

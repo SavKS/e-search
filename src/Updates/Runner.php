@@ -16,7 +16,8 @@ use Elastic\Elasticsearch\{
     Exception\MissingParameterException,
     Exception\ServerResponseException,
     Response\Elasticsearch as ElasticsearchResponse,
-    Client};
+    Client
+};
 
 class Runner
 {
@@ -26,7 +27,7 @@ class Runner
     protected MutableResource $resource;
 
     /**
-     * @var \Savks\ESearch\Elasticsearch\Connection
+     * @var Connection
      */
     protected Connection $connection;
 

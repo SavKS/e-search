@@ -5,6 +5,7 @@ namespace Savks\ESearch\Commands;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Models\ESearchUpdate;
+use Savks\ESearch\Resources\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Updates\Runner;
 use Symfony\Component\Console\Input\InputOption;
@@ -14,9 +15,6 @@ use Elastic\Elasticsearch\Exception\{
     ClientResponseException,
     MissingParameterException,
     ServerResponseException
-};
-use Savks\ESearch\Resources\{
-    ResourcesRepository
 };
 
 class UpdatesRun extends Command
@@ -53,7 +51,7 @@ class UpdatesRun extends Command
             return;
         }
 
-        $manager = $this->makeManager();
+        $manager = $this->makeClient();
 
         foreach ($resourceFQNs as $name => $resourceFQN) {
             if (! $this->option('hide-resource-info')) {

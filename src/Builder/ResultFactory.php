@@ -13,8 +13,8 @@ use Illuminate\Pagination\{
     Paginator
 };
 use Savks\ESearch\Support\{
-    Resource,
-    Resources\WithMapping
+    Resources\WithMapping,
+    Resource
 };
 
 class ResultFactory

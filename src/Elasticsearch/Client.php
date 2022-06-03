@@ -4,7 +4,6 @@ namespace Savks\ESearch\Elasticsearch;
 
 use Closure;
 use Http\Promise\Promise;
-use Illuminate\Support\Collection;
 use Savks\ESearch\Builder\DSL\Query;
 use Savks\ESearch\Debug\PerformanceTracker;
 use stdClass;

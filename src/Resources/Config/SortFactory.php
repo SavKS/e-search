@@ -2,8 +2,8 @@
 
 namespace Savks\ESearch\Resources\Config;
 
-use Savks\ESearch\Builder\Sort;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Savks\ESearch\Builder\Sort;
 
 class SortFactory
 {

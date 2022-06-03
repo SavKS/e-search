@@ -4,8 +4,8 @@ namespace Savks\ESearch\Resources;
 
 use LogicException;
 use Savks\ESearch\Builder\DSL\Query;
-use Savks\ESearch\Exceptions\EmptyQuery;
 use Savks\ESearch\Elasticsearch\Client;
+use Savks\ESearch\Exceptions\EmptyQuery;
 
 use Elastic\Elasticsearch\Exception\{
     AuthenticationException,
@@ -29,7 +29,7 @@ class ResourceRunner
     protected readonly MutableResource $mutableResource;
 
     /**
-     * @var \Savks\ESearch\Elasticsearch\Client
+     * @var Client
      */
     protected Client $manager;
 
