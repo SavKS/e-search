@@ -111,7 +111,7 @@ class Builder
      * @param array $fields
      * @return $this
      */
-    public function select(array $fields): self
+    public function select(array $fields): static
     {
         $this->selectedFields = $fields;
 
@@ -130,7 +130,7 @@ class Builder
         array $options = [],
         array|string $fallback = null,
         bool $visibleOnly = true
-    ): self {
+    ): static {
         $this->isSortWithScore = true;
 
         return $this->sortBy($data, $options, $fallback, $visibleOnly);
@@ -148,7 +148,7 @@ class Builder
         array $options = [],
         array|string $fallback = null,
         bool $visibleOnly = true
-    ): self {
+    ): static {
         $this->sortConfig['ids'] = [];
 
         try {
@@ -243,7 +243,7 @@ class Builder
      * @param int $count
      * @return $this
      */
-    public function limit(int $count): self
+    public function limit(int $count): static
     {
         $this->limit = $count;
 
@@ -253,7 +253,7 @@ class Builder
     /**
      * @return $this
      */
-    public function withoutHits(): self
+    public function withoutHits(): static
     {
         $this->skipHits = true;
 
@@ -264,7 +264,7 @@ class Builder
      * @param int $count
      * @return $this
      */
-    public function offset(int $count): self
+    public function offset(int $count): static
     {
         $this->offset = $count;
 
@@ -310,6 +310,9 @@ class Builder
     /**
      * @param int $page
      * @return bool
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
      */
     protected function isExceededPageLimit(int $page): bool
     {
@@ -318,6 +321,9 @@ class Builder
 
     /**
      * @return float
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
      */
     public function lastAllowedPage(): float
     {
@@ -328,7 +334,7 @@ class Builder
      * @param Query|Queryable|callable $predicate
      * @return $this
      */
-    public function addQuery(Query|Queryable|callable $predicate): self
+    public function addQuery(Query|Queryable|callable $predicate): static
     {
         if ($predicate instanceof Query) {
             $query = $predicate;
@@ -493,16 +499,25 @@ class Builder
     }
 
     /**
-     * @param int $page
      * @param bool $withMapping
      * @param Closure|null $mapResolver
+     * @param string $pageName
+     * @param int|null $page
      * @return Result
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
-    public function paginate(int $page, bool $withMapping = false, Closure $mapResolver = null): Result
-    {
+    public function paginate(
+        bool $withMapping = false,
+        Closure $mapResolver = null,
+        string $pageName = 'page',
+        int $page = null
+    ): Result {
+        if ($page === null) {
+            $page = $this->extractPageNumberFromRequest($pageName);
+        }
+
         $normalizedPage = $this->isExceededPageLimit($page) ? $this->lastAllowedPage() : $page;
 
         $oldOffset = $this->offset;
@@ -526,6 +541,24 @@ class Builder
         }
 
         return $factory->toResult($this->limit, $page);
+    }
+
+    /**
+     * @param string $pageName
+     * @return int
+     */
+    protected function extractPageNumberFromRequest(string $pageName): int
+    {
+        $reqPage = \request()->get($pageName);
+
+        if (! \is_numeric($reqPage)) {
+            return 1;
+        }
+
+        return max(
+            1,
+            (int)$reqPage
+        );
     }
 
     /**
@@ -728,7 +761,7 @@ class Builder
             return $this->maxItemsLimit;
         }
 
-        if (!isset($this->maxItemsLimitSettingValue)) {
+        if (! isset($this->maxItemsLimitSettingValue)) {
             $settingValue = $this->client->connection->resolveIndexSettings(
                 $this->resource->indexName(),
                 'index.max_result_window'

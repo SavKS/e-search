@@ -7,9 +7,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 use Illuminate\Database\Eloquent\{
     Relations\Relation,
-    Builder as EloquentBuilder,
-    SoftDeletes,
-    SoftDeletingScope
+    Builder as EloquentBuilder
 };
 use Illuminate\Support\{
     Arr,
@@ -41,15 +39,6 @@ trait AsDefaultEloquentResource
     }
 
     /**
-     * @param array $criteria
-     * @return EloquentBuilder|QueryBuilder|Relation
-     */
-    protected function defaultCleanQuery(array $criteria): Relation|EloquentBuilder|QueryBuilder
-    {
-        return $this->defaultQuery();
-    }
-
-    /**
      * @return EloquentBuilder|QueryBuilder|Relation
      */
     protected function defaultMappingQuery(): Relation|EloquentBuilder|QueryBuilder
@@ -75,59 +64,6 @@ trait AsDefaultEloquentResource
 
         if ($ids !== null) {
             $query->whereKey($ids);
-        }
-
-        $resolveCount(
-            $query->count()
-        );
-
-        $defaultChunkField = $this->defaultChunkField();
-
-        if ($defaultChunkField) {
-            $query->chunkById(
-                $limit,
-                $callback,
-                $this->defaultChunkField()
-            );
-        } else {
-            $query->chunk($limit, $callback);
-        }
-    }
-
-    /**
-     * @param array|null $ids
-     * @param int $limit
-     * @param Closure $callback
-     * @param Closure $resolveCount
-     * @param array $criteria
-     */
-    public function prepareClean(
-        ?array $ids,
-        int $limit,
-        Closure $callback,
-        Closure $resolveCount,
-        array $criteria = []
-    ): void {
-        $query = $this->defaultCleanQuery($criteria);
-
-        if ($query instanceof EloquentBuilder) {
-            $traits = class_uses(
-                $query->getModel()
-            );
-
-            $hasSoftDelete = \in_array($traits, SoftDeletes::class, true);
-        } else {
-            $hasSoftDelete = false;
-        }
-
-        if ($hasSoftDelete) {
-            $query->withoutGlobalScopes([SoftDeletingScope::class]);
-        }
-
-        if ($ids !== null) {
-            $query->whereKey($ids);
-        } elseif ($hasSoftDelete) {
-            $query->whereNotNull('deleted_at');
         }
 
         $resolveCount(

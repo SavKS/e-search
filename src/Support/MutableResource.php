@@ -90,21 +90,6 @@ abstract class MutableResource extends Resource
     ): void;
 
     /**
-     * @param array|null $ids
-     * @param int $limit
-     * @param Closure $callback
-     * @param Closure $resolveCount
-     * @param array $criteria
-     */
-    abstract public function prepareClean(
-        ?array $ids,
-        int $limit,
-        Closure $callback,
-        Closure $resolveCount,
-        array $criteria = []
-    ): void;
-
-    /**
      * @param mixed $entity
      * @return array
      */

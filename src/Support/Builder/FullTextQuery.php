@@ -47,7 +47,7 @@ class FullTextQuery implements Queryable
         $params = \call_user_func($predicate, $this->params);
 
         if ($predicate instanceof Closure) {
-            $this->params = \call_user_func($predicate);
+            $this->params = \call_user_func($predicate, $this->params);
         } elseif ($params instanceof SearchParams) {
             $this->params = $params;
         }

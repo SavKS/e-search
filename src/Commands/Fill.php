@@ -87,7 +87,7 @@ class Fill extends Command
                     true
                 );
 
-                $this->prepareIndex($resource, $client);
+                $this->prepareIndex($resource, $datetimeSuffix, $client);
 
                 $this->seed($resource, $client);
 
@@ -106,6 +106,7 @@ class Fill extends Command
 
     /**
      * @param MutableResource $resource
+     * @param string $datetimeSuffix
      * @param Client $client
      * @return void
      * @throws AuthenticationException
@@ -113,7 +114,7 @@ class Fill extends Command
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function prepareIndex(MutableResource $resource, Client $client): void
+    protected function prepareIndex(MutableResource $resource, string $datetimeSuffix, Client $client): void
     {
         $this->prepareForAliasCreating($resource, $client);
 
@@ -125,7 +126,6 @@ class Fill extends Command
             )
         );
 
-        $datetimeSuffix = now()->format('Y_m_d_His');
         $indexFullName = $aliasFullName . '_' . $datetimeSuffix;
 
         $client->connection->client()->indices()->create([
@@ -196,7 +196,8 @@ class Fill extends Command
                     '[<fg=white>%s</>] Index <fg=cyan>%s</> deleted.',
                     now()->toDateTimeString(),
                     $aliasFullName
-                )
+                ),
+                true
             );
         }
     }
