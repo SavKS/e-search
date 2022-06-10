@@ -5,12 +5,8 @@ namespace Savks\ESearch\Support;
 use Closure;
 use Illuminate\Http\Resources\MissingValue;
 use Illuminate\Support\Arr;
+use Savks\ESearch\Resources\ResourceRunner;
 use Savks\ESearch\Updates\Updates;
-
-use Savks\ESearch\Resources\{
-    ResourceCommandRunner,
-    ResourceRunner
-};
 
 abstract class MutableResource extends Resource
 {
@@ -124,18 +120,6 @@ abstract class MutableResource extends Resource
     public static function runner(string $connection = null): ResourceRunner
     {
         return new ResourceRunner(
-            new static(),
-            $connection
-        );
-    }
-
-    /**
-     * @param string|null $connection
-     * @return ResourceCommandRunner
-     */
-    public static function commandRunner(string $connection = null): ResourceCommandRunner
-    {
-        return new ResourceCommandRunner(
             new static(),
             $connection
         );

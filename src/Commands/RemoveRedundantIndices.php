@@ -3,25 +3,15 @@
 namespace Savks\ESearch\Commands;
 
 use Arr;
-use DB;
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Support\Collection;
 use Savks\ESearch\Elasticsearch\Client;
-use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Resources\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
-use Savks\ESearch\Updates\Runner;
-use Symfony\Component\Console\Input\InputOption;
 
 use Elastic\Elasticsearch\Exception\{
     AuthenticationException,
     ClientResponseException,
     MissingParameterException,
     ServerResponseException
-};
-use Savks\ESearch\Exceptions\{
-    CommandFailed,
-    CommandTerminated
 };
 
 class RemoveRedundantIndices extends Command
@@ -68,34 +58,7 @@ class RemoveRedundantIndices extends Command
                     );
                 }
 
-                $this->getOutput()->write(
-                    sprintf(
-                        '[<fg=white>%s</>] Start removing redundant indices for resource <fg=green>%s</>.',
-                        now()->toDateTimeString(),
-                        $name
-                    ),
-                    true
-                );
-
-                $status = $this->remove($resource, $client);
-
-                if ($status) {
-                    $this->getOutput()->write(
-                        sprintf(
-                            '[<fg=white>%s</>] Done.',
-                            now()->toDateTimeString(),
-                        ),
-                        true
-                    );
-                } else {
-                    $this->getOutput()->write(
-                        sprintf(
-                            '[<fg=white>%s</>] <fg=yellow>Nothing to delete</>.',
-                            now()->toDateTimeString(),
-                        ),
-                        true
-                    );
-                }
+                $this->process($resource, $client);
             });
         }
     }
@@ -103,13 +66,13 @@ class RemoveRedundantIndices extends Command
     /**
      * @param MutableResource $resource
      * @param Client $client
-     * @return bool
+     * @return void
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function remove(MutableResource $resource, Client $client): bool
+    protected function process(MutableResource $resource, Client $client): void
     {
         $aliasName = $client->connection->resolveIndexName(
             $resource->indexName()
@@ -154,8 +117,17 @@ class RemoveRedundantIndices extends Command
         })();
 
         if (! $deleteCandidates) {
-            return false;
+            return;
         }
+
+        $this->getOutput()->write(
+            sprintf(
+                '[<fg=white>%s</>] Found redundant indices for resource <fg=green>%s</>.',
+                now()->toDateTimeString(),
+                $resource::name()
+            ),
+            true
+        );
 
         $redundantIndices = $this->choice(
             'The following extra indexes were found. Select the ones you want to delete (0 is All)',
@@ -175,7 +147,5 @@ class RemoveRedundantIndices extends Command
         $client->connection->client()->indices()->delete([
             'index' => \implode(',', $redundantIndices),
         ]);
-
-        return true;
     }
 }

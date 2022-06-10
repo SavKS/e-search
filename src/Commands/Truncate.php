@@ -2,7 +2,6 @@
 
 namespace Savks\ESearch\Commands;
 
-use Savks\ESearch\Resources\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
 
 class Truncate extends Command
@@ -37,9 +36,9 @@ class Truncate extends Command
         $client = $this->makeClient();
 
         foreach ($resourceFQNs as $name => $resourceFQN) {
-            $this->runtimeWrapper(function () use ($name, $client) {
+            $this->runtimeWrapper(function () use ($resourceFQN, $name, $client) {
                 /** @var MutableResource $resource */
-                $resource = \app(ResourcesRepository::class)->make($name);
+                $resource = new $resourceFQN();
 
                 if ($this->option('index-name')) {
                     $resource->useIndex(

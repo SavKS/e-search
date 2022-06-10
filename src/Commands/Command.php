@@ -7,18 +7,17 @@ use Illuminate\Support\Arr;
 use LogicException;
 use RuntimeException;
 use Savks\ESearch\Elasticsearch\Client;
-use Savks\ESearch\Exceptions\CommandFailed;
-use Savks\ESearch\Exceptions\CommandTerminated;
 use Savks\ESearch\Resources\ResourcesRepository;
+use Savks\ESearch\Support\MutableResource;
 use Symfony\Component\Console\Input\InputOption;
 
 use Illuminate\Console\{
     Command as BaseCommand,
     ConfirmableTrait
 };
-use Savks\ESearch\Support\{
-    MutableResource,
-    Resource
+use Savks\ESearch\Exceptions\{
+    CommandFailed,
+    CommandTerminated
 };
 
 abstract class Command extends BaseCommand
@@ -88,6 +87,22 @@ abstract class Command extends BaseCommand
     {
         $resources = app(ResourcesRepository::class)->mutableOnly();
 
+        $selectedResource = $this->option('resource');
+
+        if ($selectedResource) {
+            if (\class_exists($selectedResource)) {
+                if (! \is_subclass_of($selectedResource, MutableResource::class)) {
+                    throw new LogicException("The selected \"{$selectedResource}\" resource is not mutable.");
+                }
+
+                return [
+                    $selectedResource::name() => $selectedResource,
+                ];
+            }
+
+            return Arr::only($resources, [$selectedResource]);
+        }
+
         if (! $resources) {
             return [];
         }
@@ -100,18 +115,7 @@ abstract class Command extends BaseCommand
             return $resources;
         }
 
-        if ($selectedResource = $this->option('resource')) {
-            if (\is_subclass_of($selectedResource, Resource::class)) {
-                if (! \is_subclass_of($selectedResource, MutableResource::class)) {
-                    throw new LogicException("The selected \"{$selectedResource}\" resource is not mutable.");
-                }
-
-                return \array_filter(
-                    $resources,
-                    fn(string $resource) => \ltrim($resource, '\\') === \ltrim($selectedResource, '\\')
-                );
-            }
-
+        if ($selectedResource) {
             return Arr::only($resources, [$selectedResource]);
         } else {
             $choice = $this->choice(

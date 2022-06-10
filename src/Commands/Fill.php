@@ -5,7 +5,6 @@ namespace Savks\ESearch\Commands;
 use DB;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Models\ESearchUpdate;
-use Savks\ESearch\Resources\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Updates\Runner;
 use Symfony\Component\Console\Input\InputOption;
@@ -59,37 +58,31 @@ class Fill extends Command
         $client = $this->makeClient();
 
         foreach ($resourceFQNs as $name => $resourceFQN) {
-            $this->runtimeWrapper(function () use ($client, $name) {
+            $this->runtimeWrapper(function () use ($resourceFQN, $client, $name) {
                 /** @var MutableResource $resource */
-                $resource = \app(ResourcesRepository::class)->make($name);
+                $resource = new $resourceFQN();
 
                 $datetimeSuffix = now()->format('Y_m_d_His');
 
-                if ($this->option('index-name')) {
-                    $resource->useIndex(
-                        "{$this->option('index-name')}_{$datetimeSuffix}"
-                    );
-                } else {
-                    $resource->useIndex(
-                        "{$resource->indexName()}_{$datetimeSuffix}"
-                    );
-                }
+                $indexOriginName = $this->option('index-name') ?? $resource->indexName();
+
+                $resource->useIndex("{$indexOriginName}_{$datetimeSuffix}");
 
                 $this->getOutput()->write(
                     sprintf(
                         '[<fg=white>%s</>] Start filling resource <fg=green>%s</> to index alias <fg=blue>%s</>.',
                         now()->toDateTimeString(),
                         $name,
-                        $client->connection->resolveIndexName(
-                            $resource->indexName()
-                        )
+                        $client->connection->resolveIndexName($indexOriginName)
                     ),
                     true
                 );
 
                 $this->prepareIndex($resource, $datetimeSuffix, $client);
 
-                $this->seed($resource, $client);
+                if (! $this->option('no-seed')) {
+                    $this->seed($resource, $client);
+                }
 
                 $this->assignIndexAlias($resource, $client);
 
@@ -410,6 +403,7 @@ class Fill extends Command
             [
                 ['items-limit', null, InputOption::VALUE_OPTIONAL, 'Limit items per iteration.'],
                 ['with-query-log', null, InputOption::VALUE_NONE, 'Run with query log.'],
+                ['no-seed', null, InputOption::VALUE_NONE, 'Without data seeding.'],
             ]
         );
     }
