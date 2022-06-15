@@ -11,4 +11,5 @@ trait HasDefaultConditions
     use HasRaw;
     use HasTerm;
     use HasTerms;
+    use HasMatchNone;
 }

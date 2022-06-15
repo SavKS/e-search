@@ -343,7 +343,13 @@ class Builder
         } else {
             $query = new Query();
 
-            $predicate($query);
+            $newQuery = $predicate($query);
+
+            if ($newQuery instanceof Query) {
+                $query = $newQuery;
+            } elseif ($newQuery instanceof Queryable) {
+                $query = $newQuery->toQuery();
+            }
         }
 
         if (! $query->isEmpty()) {
