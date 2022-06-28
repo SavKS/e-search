@@ -24,7 +24,7 @@ trait AsDefaultEloquentResource
     /**
      * @return string|null
      */
-    public function defaultChunkField(): ?string
+    protected function defaultChunkField(): ?string
     {
         return null;
     }

@@ -22,6 +22,13 @@ use Savks\ESearch\Builder\DSL\{
 
 class Builder
 {
+    use Traits\HasChunkBy;
+    use Traits\HasEachBy;
+    use Traits\HasLazyChunk;
+    use Traits\HasLazyChunkBy;
+    use Traits\HasLazyEach;
+    use Traits\HasLazyEachBy;
+
     /**
      * @var Resource
      */
@@ -579,104 +586,6 @@ class Builder
             $this->resource,
             $this->toRequest()
         );
-    }
-
-    /**
-     * @param string $field
-     * @param int $limit
-     * @param Closure $callback
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return void
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     * @throws AuthenticationException
-     */
-    public function chunkBy(
-        string $field,
-        int $limit,
-        Closure $callback,
-        bool $withMapping = false,
-        Closure $mapResolver = null
-    ): void {
-        $done = false;
-
-        $lastField = $field === '_id' ? $field : "_source.{$field}";
-        $lastValue = null;
-
-        while (! $done) {
-            $dslQuery = $this->toRequest();
-
-            $dslQuery['size'] = $limit;
-
-            if ($lastValue) {
-                $dslQuery['body']['query'] = [
-                    'bool' => [
-                        'must' => [
-                            $dslQuery['body']['query'],
-
-                            [
-                                'range' => [
-                                    $field => [
-                                        'gt' => $lastValue,
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ];
-            }
-
-            $dslQuery['body']['sort'] = [
-                $field => [
-                    'order' => 'asc',
-                ],
-            ];
-
-            $response = $this->client->search($this->resource, $dslQuery);
-
-            $rawResult = $this->normalizeRawResult($response);
-
-            $count = \count($rawResult['hits']['hits']);
-
-            if ($count === 0) {
-                break;
-            }
-
-            $done = $count < $limit;
-
-            $lastValue = Arr::get(
-                last($rawResult['hits']['hits']),
-                $lastField
-            );
-
-            $resultFactory = new ResultFactory($this->resource, $rawResult, $response);
-
-            if ($withMapping) {
-                $resultFactory->withMapping($mapResolver);
-            }
-
-            $result = $resultFactory->toResult($limit);
-
-            if ($callback($result) === false) {
-                break;
-            }
-        }
-    }
-
-    /**
-     * @param string $field
-     * @param int $limit
-     * @param Closure $callback
-     * @param Closure $mapResolver
-     * @return void
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
-    public function chunkByWithMapping(string $field, int $limit, Closure $callback, Closure $mapResolver): void
-    {
-        $this->chunkBy($field, $limit, $callback, true, $mapResolver);
     }
 
     /**
