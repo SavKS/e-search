@@ -137,7 +137,11 @@ class ResultFactory
             }
         }
 
-        return \collect($items);
+        if (! ($items instanceof Collection)) {
+            $items = \collect($items);
+        }
+
+        return $items;
     }
 
     /**
