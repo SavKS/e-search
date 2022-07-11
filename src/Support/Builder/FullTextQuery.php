@@ -99,7 +99,7 @@ class FullTextQuery implements Queryable
     {
         $term = mb_strtolower(
             preg_replace(
-                "/[^а-яa-z\d\'\і\є\ї\ \.\-\(\)\[\]\<\>\\\\\/]/ui",
+                "/[^а-яa-z\d\'\і\є\ї\ \.\-_\(\)\[\]\<\>\\\\\/]/ui",
                 '',
                 $this->term
             )
