@@ -3,6 +3,7 @@
 namespace Savks\ESearch\Commands;
 
 use DB;
+use Elastic\Transport\Exception\NoNodeAvailableException;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
@@ -84,6 +85,8 @@ class Fill extends Command
                     $this->seed($resource, $client);
                 }
 
+                $this->waitForIndexToBeReady($resource, $client);
+
                 $this->assignIndexAlias($resource, $client);
 
                 $this->getOutput()->write(
@@ -149,6 +152,22 @@ class Fill extends Command
                 )
             );
         });
+    }
+
+    /**
+     * @param MutableResource $resource
+     * @param Client $client
+     * @return void
+     * @throws AuthenticationException
+     * @throws NoNodeAvailableException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
+     */
+    protected function waitForIndexToBeReady(MutableResource $resource, Client $client): void
+    {
+        $client->elasticsearchClient()->indices()->refresh([
+            'index' => $client->connection->resolveIndexName($resource->indexName()),
+        ]);
     }
 
     /**
@@ -362,14 +381,14 @@ class Fill extends Command
         $client->elasticsearchClient()->indices()->updateAliases([
             'body' => [
                 'actions' => [
-                    ...$removeOldAliasesActions,
-
                     [
                         'add' => [
                             'index' => $indexFullName,
                             'alias' => $aliasFullName,
                         ],
                     ],
+
+                    ...$removeOldAliasesActions,
                 ],
             ],
         ]);
