@@ -8,6 +8,7 @@ use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Updates\Runner;
+use Str;
 use Symfony\Component\Console\Input\InputOption;
 
 use Elastic\Elasticsearch\Exception\{
@@ -63,7 +64,7 @@ class Fill extends Command
                 /** @var MutableResource $resource */
                 $resource = new $resourceFQN();
 
-                $datetimeSuffix = now()->format('Y_m_d_His');
+                $datetimeSuffix = now()->format('Y_m_d_His') . '_' . strtolower(Str::random(6));
 
                 $indexOriginName = $this->option('index-name') ?? $resource->indexName();
 
@@ -79,7 +80,7 @@ class Fill extends Command
                     true
                 );
 
-                $this->prepareIndex($resource, $datetimeSuffix, $client);
+                $this->prepareIndex($resource, $indexOriginName, $datetimeSuffix, $client);
 
                 if (! $this->option('no-seed')) {
                     $this->seed($resource, $client);
@@ -87,7 +88,7 @@ class Fill extends Command
 
                 $this->waitForIndexToBeReady($resource, $client);
 
-                $this->assignIndexAlias($resource, $client);
+                $this->assignIndexAlias($resource, $indexOriginName, $client);
 
                 $this->getOutput()->write(
                     sprintf(
@@ -102,6 +103,7 @@ class Fill extends Command
 
     /**
      * @param MutableResource $resource
+     * @param string $indexOriginName
      * @param string $datetimeSuffix
      * @param Client $client
      * @return void
@@ -110,16 +112,14 @@ class Fill extends Command
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function prepareIndex(MutableResource $resource, string $datetimeSuffix, Client $client): void
+    protected function prepareIndex(MutableResource $resource, string $indexOriginName, string $datetimeSuffix, Client $client): void
     {
-        $this->prepareForAliasCreating($resource, $client);
+        $this->prepareForAliasCreating($resource, $indexOriginName, $client);
 
         $updatesRunner = new Runner($resource, $client->connection);
 
         $aliasFullName = $client->connection->resolveIndexName(
-            $this->removeDatetimeSuffixFromIndexName(
-                $resource->indexName()
-            )
+            $indexOriginName
         );
 
         $indexFullName = $aliasFullName . '_' . $datetimeSuffix;
@@ -172,6 +172,7 @@ class Fill extends Command
 
     /**
      * @param MutableResource $resource
+     * @param string $indexOriginName
      * @param Client $client
      * @return void
      * @throws AuthenticationException
@@ -179,12 +180,10 @@ class Fill extends Command
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function prepareForAliasCreating(MutableResource $resource, Client $client): void
+    protected function prepareForAliasCreating(MutableResource $resource, string $indexOriginName, Client $client): void
     {
         $aliasFullName = $client->connection->resolveIndexName(
-            $this->removeDatetimeSuffixFromIndexName(
-                $resource->indexName()
-            )
+            $indexOriginName
         );
         $aliasesInfo = $client->elasticsearchClient()->indices()->getAlias()->asArray();
 
@@ -341,6 +340,7 @@ class Fill extends Command
 
     /**
      * @param MutableResource $resource
+     * @param string $indexOriginName
      * @param Client $client
      * @return void
      * @throws AuthenticationException
@@ -348,12 +348,10 @@ class Fill extends Command
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function assignIndexAlias(MutableResource $resource, Client $client): void
+    protected function assignIndexAlias(MutableResource $resource, string $indexOriginName, Client $client): void
     {
         $aliasFullName = $client->connection->resolveIndexName(
-            $this->removeDatetimeSuffixFromIndexName(
-                $resource->indexName()
-            )
+            $indexOriginName
         );
         $indexFullName = $client->connection->resolveIndexName(
             $resource->indexName()

@@ -68,19 +68,6 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * @param string $name
-     * @return string
-     */
-    protected function removeDatetimeSuffixFromIndexName(string $name): string
-    {
-        return \preg_replace(
-            '/_(\d{4}_\d{2}_\d{2}_\d{6})$/',
-            '',
-            $name
-        );
-    }
-
-    /**
      * @return array<string, class-string<MutableResource>>
      */
     protected function choiceResources(bool $isSingularChoice = false): array
