@@ -86,7 +86,7 @@ class RemoveRedundantIndices extends Command
             $result = [];
 
             $currentIndexName = null;
-            $pattern = '/^' . \preg_quote($aliasName) . '_(\d{4}_\d{2}_\d{2}_\d{6})$/';
+            $pattern = '/^' . \preg_quote($aliasName) . '_(\d{4}_\d{2}_\d{2}_\d{6})_\w{6}$/';
 
             foreach ($aliasesInfo as $indexName => $data) {
                 $isMatched = \preg_match($pattern, $indexName, $matches) > 0;
@@ -101,8 +101,17 @@ class RemoveRedundantIndices extends Command
                     if ($currentIndexName) {
                         \preg_match($pattern, $currentIndexName, $currentMatches);
 
-                        $currentDatetime = (int)\str_replace('_', '', $currentMatches[1]);
-                        $datetime = (int)\str_replace('_', '', $matches[1]);
+                        $currentDatetime = (int)\str_replace(
+                            '_',
+                            '',
+                            \preg_replace('/_\w{6}$/', '', $currentMatches[1])
+                        );
+
+                        $datetime = (int)\str_replace(
+                            '_',
+                            '',
+                            \preg_replace('/_\w{6}$/', '', $matches[1])
+                        );
 
                         if ($datetime > $currentDatetime) {
                             $currentIndexName = $indexName;
