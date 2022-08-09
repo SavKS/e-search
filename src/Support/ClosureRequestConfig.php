@@ -3,6 +3,7 @@
 namespace Savks\ESearch\Support;
 
 use Closure;
+use Savks\ESearch\Elasticsearch\RequestTypes;
 
 class ClosureRequestConfig implements RequestConfigContract
 {
@@ -29,11 +30,11 @@ class ClosureRequestConfig implements RequestConfigContract
     }
 
     /**
-     * @param string $requestType
+     * @param RequestTypes $requestType
      * @param array $request
      * @return array
      */
-    public function applyToRequest(string $requestType, array $request): array
+    public function applyToRequest(RequestTypes $requestType, array $request): array
     {
         return ($this->closure)($request, $requestType);
     }

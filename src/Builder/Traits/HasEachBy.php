@@ -35,12 +35,14 @@ trait HasEachBy
     ): void {
         $this->chunkBy($field,
             $limit,
-            function (Result $result) use ($callback): mixed {
+            function (Result $result) use ($callback): ?bool {
                 foreach ($result->items as $item) {
                     if ($callback($item) === false) {
                         return false;
                     }
                 }
+
+                return null;
             },
             $withMapping,
             $mapResolver
