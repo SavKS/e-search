@@ -99,13 +99,13 @@ class FullTextQuery implements Queryable
     {
         $term = mb_strtolower(
             preg_replace(
-                "/[^а-яa-z\d\'\і\є\ї\ \.\-_\(\)\[\]\<\>\\\\\/]/ui",
+                "/[^а-яa-z\d\'\і\є\ї\ \.\-_\(\)\[\]\<\>\\\\\/\@]/ui",
                 '',
                 $this->term
             )
         );
 
-        $term = addcslashes($term, '+-=&|><!(){}[]^"~*?:\/');
+        $term = addcslashes($term, '+-=&|><!(){}[]^"~*?:\/@');
 
         return preg_replace(
             '/(\ ){2,}/',
