@@ -622,7 +622,7 @@ class Builder
         );
 
         if ($page && $page > $this->lastAllowedPage()) {
-            $result['hits']['hits']['value'] = $this->resolveMaxItemsLimit();
+            $result['hits']['total']['value'] = $this->resolveMaxItemsLimit();
         }
 
         return $result;
