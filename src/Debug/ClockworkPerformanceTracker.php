@@ -8,10 +8,6 @@ use Str;
 
 class ClockworkPerformanceTracker implements PerformanceTracker
 {
-    /**
-     * @param Resource $resource
-     * @return Closure
-     */
     public function runMeasure(Resource $resource): Closure
     {
         $queryUniqId = Str::random();

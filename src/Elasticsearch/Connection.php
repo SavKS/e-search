@@ -20,52 +20,21 @@ use Monolog\{
 
 class Connection
 {
-    /**
-     * @var string
-     */
-    public readonly string $name;
-
-    /**
-     * @var array
-     */
-    public readonly array $config;
-
-    /**
-     * @var bool
-     */
     public readonly bool $isTrackPerformanceEnabled;
 
-    /**
-     * @var Logger
-     */
     protected Logger $logger;
 
-    /**
-     * @var Client
-     */
     protected Client $client;
 
-    /**
-     * @var ErrorsHandler
-     */
     protected ErrorsHandler $errorsHandler;
 
-    /**
-     * @param string $name
-     * @param array $config
-     */
-    public function __construct(string $name, array $config)
-    {
-        $this->name = $name;
-        $this->config = $config;
-
+    public function __construct(
+        public readonly string $name,
+        public readonly array $config
+    ) {
         $this->isTrackPerformanceEnabled = (bool)($config['enable_track_performance'] ?? false);
     }
 
-    /**
-     * @param string $name
-     * @return string
-     */
     public function resolveIndexName(string $name): string
     {
         $prefix = $this->config['index_prefix'] ?? null;
@@ -81,9 +50,6 @@ class Connection
         return $name;
     }
 
-    /**
-     * @return Logger
-     */
     public function logger(): Logger
     {
         if (! isset($this->logger)) {
@@ -100,7 +66,6 @@ class Connection
     }
 
     /**
-     * @return Client
      * @throws AuthenticationException
      */
     public function client(): Client
@@ -124,9 +89,6 @@ class Connection
         return $this->client;
     }
 
-    /**
-     * @return ErrorsHandler
-     */
     public function errorsHandler(): ErrorsHandler
     {
         if (! isset($this->errorsHandler)) {
@@ -140,9 +102,6 @@ class Connection
     }
 
     /**
-     * @param string $indexName
-     * @param string|null $settingName
-     * @return mixed
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException

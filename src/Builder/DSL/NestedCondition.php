@@ -4,37 +4,17 @@ namespace Savks\ESearch\Builder\DSL;
 
 class NestedCondition extends Condition
 {
-    /**
-     * @var string
-     */
-    protected string $path;
-
-    /**
-     * @var Query
-     */
-    protected Query $query;
-
-    /**
-     * @param string $path
-     * @param Query $query
-     */
-    public function __construct(string $path, Query $query)
-    {
-        $this->path = $path;
-        $this->query = $query;
+    public function __construct(
+        protected readonly string $path,
+        protected readonly Query $query
+    ) {
     }
 
-    /**
-     * @return bool
-     */
     public function isEmpty(): bool
     {
         return $this->query->isEmpty();
     }
 
-    /**
-     * @return array
-     */
     public function toArray(): array
     {
         return [

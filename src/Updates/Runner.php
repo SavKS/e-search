@@ -21,54 +21,29 @@ use Elastic\Elasticsearch\{
 
 class Runner
 {
-    /**
-     * @var MutableResource
-     */
-    protected MutableResource $resource;
-
-    /**
-     * @var Connection
-     */
-    protected Connection $connection;
-
-    /**
-     * @var Updates
-     */
     protected Updates $updates;
 
-    /**
-     * @param MutableResource $resource
-     * @param Connection $connection
-     */
-    public function __construct(MutableResource $resource, Connection $connection)
-    {
-        $this->resource = $resource;
-        $this->connection = $connection;
+    public function __construct(
+        protected readonly MutableResource $resource,
+        protected readonly Connection $connection
+    ) {
 
         $this->updates = $this->resource->updates(
             new Updates()
         );
     }
 
-    /**
-     * @return bool
-     */
     public function hasUpdates(): bool
     {
         return $this->updates->isNotEmpty();
     }
 
-    /**
-     * @return bool
-     */
     public function hasAppliedUpdates(): bool
     {
         return $this->newQuery()->exists();
     }
 
     /**
-     * @param Closure|null $stepCallback
-     * @return int|null
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
@@ -104,7 +79,7 @@ class Runner
                 if ($eSearchUpdate->connection_name !== $this->connection->name
                     || $eSearchUpdate->resource !== $this->resource::name()
                     || $eSearchUpdate->type !== $update::type()
-                    || $eSearchUpdate->name !== $update->name()
+                    || $eSearchUpdate->name !== $update->name
                 ) {
                     throw new UpdateFail(
                         \sprintf(
@@ -113,7 +88,7 @@ class Runner
                                 $this->connection->name,
                                 $this->resource::name(),
                                 $update::type(),
-                                $update->name(),
+                                $update->name,
                             ]),
                             \implode(' — ', [
                                 $eSearchUpdate->connection_name,
@@ -139,7 +114,7 @@ class Runner
                     'connection_name' => $this->connection->name,
                     'resource' => $this->resource::name(),
                     'type' => $update::type(),
-                    'name' => $update->name(),
+                    'name' => $update->name,
                 ]);
 
                 $newCount++;
@@ -157,17 +132,11 @@ class Runner
         return $newCount;
     }
 
-    /**
-     * @return void
-     */
     public function clean(): void
     {
         $this->newQuery()->delete();
     }
 
-    /**
-     * @return Builder
-     */
     protected function newQuery(): Builder
     {
         $query = ESearchUpdate::query();
@@ -184,10 +153,6 @@ class Runner
     }
 
     /**
-     * @param string $indexName
-     * @param MappingUpdate|SettingsUpdate $update
-     * @param Client $client
-     * @return bool
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
@@ -204,10 +169,6 @@ class Runner
     }
 
     /**
-     * @param string $indexName
-     * @param MappingUpdate $update
-     * @param Client $client
-     * @return ElasticsearchResponse
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
@@ -216,15 +177,11 @@ class Runner
     {
         return $client->indices()->putMapping([
             'index' => $indexName,
-            'body' => $update->payload(),
+            'body' => $update->payload,
         ]);
     }
 
     /**
-     * @param string $indexName
-     * @param SettingsUpdate $update
-     * @param Client $client
-     * @return ElasticsearchResponse
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -235,7 +192,7 @@ class Runner
     ): ElasticsearchResponse {
         return $client->indices()->putSettings([
             'index' => $indexName,
-            'body' => $update->payload(),
+            'body' => $update->payload,
         ]);
     }
 }

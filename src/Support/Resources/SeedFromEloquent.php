@@ -12,27 +12,13 @@ use Illuminate\Database\Eloquent\{
 
 trait SeedFromEloquent
 {
-    /**
-     * @return string|null
-     */
     protected function defaultChunkField(): ?string
     {
         return null;
     }
 
-    /**
-     * @param array $criteria
-     * @return EloquentBuilder|QueryBuilder|Relation
-     */
     abstract protected function defaultSeedQuery(array $criteria): Relation|EloquentBuilder|QueryBuilder;
 
-    /**
-     * @param array|null $ids
-     * @param int $limit
-     * @param Closure $callback
-     * @param Closure $resolveCount
-     * @param array $criteria
-     */
     public function prepareSeed(
         ?array $ids,
         int $limit,

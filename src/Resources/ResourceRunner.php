@@ -21,30 +21,16 @@ use Savks\ESearch\Support\{
 
 class ResourceRunner
 {
-    /**
-     * @var MutableResource
-     */
-    protected readonly MutableResource $mutableResource;
-
-    /**
-     * @var Client
-     */
     protected Client $manager;
 
-    /**
-     * @param MutableResource $mutableResource
-     * @param string|null $connection
-     */
-    public function __construct(MutableResource $mutableResource, string $connection = null)
-    {
-        $this->mutableResource = $mutableResource;
-
+    public function __construct(
+        protected readonly MutableResource $mutableResource,
+        string $connection = null
+    ) {
         $this->manager = new Client($connection);
     }
 
     /**
-     * @param array|string $ids
-     * @return void
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -58,13 +44,12 @@ class ResourceRunner
     }
 
     /**
-     * @param array|string $ids
-     * @return void
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
-    public function purgeSync(array|string $ids): void {
+    public function purgeSync(array|string $ids): void
+    {
         $this->manager->withConfig(
             (new RequestConfig())->refresh(),
             function () use ($ids) {
@@ -73,12 +58,6 @@ class ResourceRunner
         );
     }
 
-    /**
-     * @param array|string|null $ids
-     * @param array $criteria
-     * @param int $limit
-     * @return void
-     */
     public function push(array|string $ids = null, array $criteria = [], int $limit = 100): void
     {
         $ids = $ids === null ? null : Arr::wrap($ids);
@@ -109,12 +88,6 @@ class ResourceRunner
         );
     }
 
-    /**
-     * @param array|string|null $ids
-     * @param array $criteria
-     * @param int $limit
-     * @return void
-     */
     public function pushSync(array|string $ids = null, array $criteria = [], int $limit = 100): void
     {
         $this->manager->withConfig(

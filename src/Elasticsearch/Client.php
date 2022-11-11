@@ -24,19 +24,10 @@ use Savks\ESearch\Support\{
 
 class Client
 {
-    /**
-     * @var Connection
-     */
     public readonly Connection $connection;
 
-    /**
-     * @var RequestConfigContract
-     */
-    protected RequestConfigContract $requestConfig;
+    protected readonly RequestConfigContract $requestConfig;
 
-    /**
-     * @param string|null $connection
-     */
     public function __construct(string $connection = null)
     {
         $this->connection = $connection ?
@@ -47,7 +38,6 @@ class Client
     }
 
     /**
-     * @return ElasticsearchClient
      * @throws AuthenticationException
      */
     public function elasticsearchClient(): ElasticsearchClient
@@ -56,9 +46,6 @@ class Client
     }
 
     /**
-     * @param Resource $resource
-     * @param array $document
-     * @return ElasticsearchResponse|Promise
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -68,7 +55,7 @@ class Client
     {
         $response = $this->measure(
             $resource,
-            fn() => $this->connection->client()->index(
+            fn () => $this->connection->client()->index(
                 $this->requestConfig->applyToRequest(RequestTypes::SAVE, [
                     'id' => $document[$resource->documentIdBy()],
                     'index' => $this->connection->resolveIndexName(
@@ -85,9 +72,6 @@ class Client
     }
 
     /**
-     * @param Resource $resource
-     * @param iterable $documents
-     * @return ElasticsearchResponse
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -111,7 +95,7 @@ class Client
 
         $response = $this->measure(
             $resource,
-            fn() => $this->connection->client()->bulk(
+            fn () => $this->connection->client()->bulk(
                 $this->requestConfig->applyToRequest(RequestTypes::BULK_SAVE, $params)
             )
         );
@@ -122,9 +106,6 @@ class Client
     }
 
     /**
-     * @param Resource $resource
-     * @param int|string $id
-     * @return ElasticsearchResponse
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -134,7 +115,7 @@ class Client
     {
         $response = $this->measure(
             $resource,
-            fn() => $this->connection->client()->delete(
+            fn () => $this->connection->client()->delete(
                 $this->requestConfig->applyToRequest(RequestTypes::DELETE, [
                     'id' => $id,
                     'index' => $this->connection->resolveIndexName(
@@ -150,9 +131,6 @@ class Client
     }
 
     /**
-     * @param Resource $resource
-     * @param iterable $ids
-     * @return ElasticsearchResponse
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -174,7 +152,7 @@ class Client
 
         $response = $this->measure(
             $resource,
-            fn() => $this->connection->client()->bulk(
+            fn () => $this->connection->client()->bulk(
                 $this->requestConfig->applyToRequest(RequestTypes::BULK_DELETE, $params)
             )
         );
@@ -185,9 +163,6 @@ class Client
     }
 
     /**
-     * @param Resource $resource
-     * @param Query|array $bodyQuery
-     * @return ElasticsearchResponse|Promise
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -197,7 +172,7 @@ class Client
     {
         $response = $this->measure(
             $resource,
-            fn() => $this->connection->client()->deleteByQuery(
+            fn () => $this->connection->client()->deleteByQuery(
                 $this->requestConfig->applyToRequest(RequestTypes::DELETE_BY_QUERY, [
                     'index' => $this->connection->resolveIndexName(
                         $resource->indexName()
@@ -215,8 +190,6 @@ class Client
     }
 
     /**
-     * @param Resource $resource
-     * @return ElasticsearchResponse
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -226,7 +199,7 @@ class Client
     {
         $response = $this->measure(
             $resource,
-            fn() => $this->connection->client()->deleteByQuery(
+            fn () => $this->connection->client()->deleteByQuery(
                 $this->requestConfig->applyToRequest(RequestTypes::TRUNCATE, [
                     'index' => $this->connection->resolveIndexName(
                         $resource->indexName()
@@ -246,9 +219,6 @@ class Client
     }
 
     /**
-     * @param Resource $resource
-     * @param array $request
-     * @return ElasticsearchResponse
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -257,7 +227,7 @@ class Client
     {
         return $this->measure(
             $resource,
-            fn() => $this->connection->client()->search([
+            fn () => $this->connection->client()->search([
                 ...$request,
 
                 'index' => $this->connection->resolveIndexName(
@@ -268,9 +238,6 @@ class Client
     }
 
     /**
-     * @param Resource $resource
-     * @param array|Query $bodyQuery
-     * @return ElasticsearchResponse
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -279,7 +246,7 @@ class Client
     {
         return $this->measure(
             $resource,
-            fn() => $this->connection->client()->count([
+            fn () => $this->connection->client()->count([
                 'index' => $this->connection->resolveIndexName(
                     $resource->indexName()
                 ),
@@ -290,11 +257,6 @@ class Client
         );
     }
 
-    /**
-     * @param Closure|RequestConfigContract $config
-     * @param Closure $actionsCallback
-     * @return self
-     */
     public function withConfig(RequestConfigContract|Closure $config, Closure $actionsCallback): self
     {
         $oldConfig = $this->requestConfig;
@@ -314,11 +276,6 @@ class Client
         return $this;
     }
 
-    /**
-     * @param Resource $resource
-     * @param Closure $callback
-     * @return ElasticsearchResponse
-     */
     protected function measure(Resource $resource, Closure $callback): ElasticsearchResponse
     {
         $stopMeasure = $this->connection->isTrackPerformanceEnabled ?

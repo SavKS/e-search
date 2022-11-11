@@ -16,19 +16,10 @@ class BoolCondition extends Condition
         'filter' => [],
     ];
 
-    /**
-     * @var int|null
-     */
     protected ?int $minimumShouldMatch = null;
 
-    /**
-     * @var float|null
-     */
     protected ?float $boost = null;
 
-    /**
-     * @return bool
-     */
     public function isEmpty(): bool
     {
         $value = true;
@@ -44,47 +35,26 @@ class BoolCondition extends Condition
         return $value;
     }
 
-    /**
-     * @param callable|Query|null $predicate
-     * @return $this|Query
-     */
     public function must(callable|Query $predicate = null): static|Query
     {
         return $this->addCondition('must', $predicate);
     }
 
-    /**
-     * @param callable|Query|null $predicate
-     * @return $this|Query
-     */
     public function mustNot(callable|Query $predicate = null): static|Query
     {
         return $this->addCondition('must_not', $predicate);
     }
 
-    /**
-     * @param callable|Query|null $predicate
-     * @return $this|Query
-     */
     public function should(callable|Query $predicate = null): static|Query
     {
         return $this->addCondition('should', $predicate);
     }
 
-    /**
-     * @param callable|Query|null $predicate
-     * @return $this|Query
-     */
     public function filter(callable|Query $predicate = null): static|Query
     {
         return $this->addCondition('filter', $predicate);
     }
 
-    /**
-     * @param string $condition
-     * @param callable|Query|null $predicate
-     * @return $this|Query
-     */
     protected function addCondition(string $condition, callable|Query $predicate = null): static|Query
     {
         if ($predicate === null) {
@@ -108,9 +78,6 @@ class BoolCondition extends Condition
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function toArray(): array
     {
         $result = [];

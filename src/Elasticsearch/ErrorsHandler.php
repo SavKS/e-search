@@ -15,44 +15,18 @@ use Savks\ESearch\Exceptions\{
 
 class ErrorsHandler
 {
-    /**
-     * @var array
-     */
-    protected array $config;
-
-    /**
-     * @var Logger
-     */
-    protected Logger $logger;
-
-    /**
-     * @var bool
-     */
     protected bool $isErrorsHandlingDebugEnabled;
 
-    /**
-     * @var bool
-     */
     protected bool $isErrorsHandlingWriteToLog;
 
-    /**
-     * @var bool
-     */
     protected bool $isErrorsHandlingUseSentry;
 
-    /**
-     * @var bool
-     */
     protected bool $isLoggingEnabled;
 
-    /**
-     * @param array $config
-     * @param Logger $logger
-     */
-    public function __construct(array $config, Logger $logger)
-    {
-        $this->config = $config;
-        $this->logger = $logger;
+    public function __construct(
+        protected readonly array $config,
+        protected readonly Logger $logger
+    ) {
 
         $this->isErrorsHandlingDebugEnabled = (bool)Arr::get(
             $config,
@@ -73,11 +47,6 @@ class ErrorsHandler
         );
     }
 
-    /**
-     * @param RequestTypes $requestType
-     * @param ElasticsearchResponse $response
-     * @return void
-     */
     public function processResponse(RequestTypes $requestType, ElasticsearchResponse $response): void
     {
         if (empty($response['errors']) && empty($response['failures'])) {
@@ -95,10 +64,6 @@ class ErrorsHandler
         $this->assertError($exception);
     }
 
-    /**
-     * @param OperationFail $exception
-     * @return void
-     */
     protected function writeToLog(OperationFail $exception): void
     {
         if ($this->isErrorsHandlingWriteToLog && $this->isLoggingEnabled) {
@@ -109,10 +74,6 @@ class ErrorsHandler
         }
     }
 
-    /**
-     * @param OperationFail $exception
-     * @return void
-     */
     protected function assertError(OperationFail $exception): void
     {
         if ($this->isErrorsHandlingDebugEnabled) {

@@ -7,33 +7,15 @@ use Savks\ESearch\Elasticsearch\RequestTypes;
 
 class ClosureRequestConfig implements RequestConfigContract
 {
-    /**
-     * @var Closure
-     */
-    protected Closure $closure;
+    final public function __construct(protected readonly Closure $closure)
+    {
+    }
 
-    /**
-     * @return static
-     */
-    public static function make(Closure $closure): self
+    public static function make(Closure $closure): static
     {
         return new static($closure);
     }
 
-    /**
-     * @param Closure $closure
-     * @return void
-     */
-    public function __construct(Closure $closure)
-    {
-        $this->closure = $closure;
-    }
-
-    /**
-     * @param RequestTypes $requestType
-     * @param array $request
-     * @return array
-     */
     public function applyToRequest(RequestTypes $requestType, array $request): array
     {
         return ($this->closure)($request, $requestType);

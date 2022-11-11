@@ -1,24 +1,25 @@
 # Work in progress
 
 # Description
-ESearch
 
+ESearch
 
 # Installation
 
 ### Step 1
+
 install package
 
     composer require savks/e-search
 
 ### Step 2
+
 Publish e-search config file
 
     php artisan vendor:publish
 
-
-
 # Usage
+
 ### Step 1
 
 Create resource class for mapping data into specific elastic index from example below
@@ -39,31 +40,17 @@ use Savks\ESearch\Support\Config;
 
 class ProductResource extends Resource
 {
-        /**
-     * @return string
-     */
     public static function id(): string
     {
         return 'product';
     }
 
-    /**
-     * @param Config $config
-     * @return void
-     */
     public static function configure(Config $config): void
     {
         //
     }
 
 
-    /**
-     * @param int $limit
-     * @param Closure $callback
-     * @param Closure $resolveCount
-     * @param array $criteria
-     * @return void
-     */
     public function seed(?array $ids, int $limit, Closure $callback, Closure $resolveCount, array $criteria = []): void
     {
         $query = Product::query()
@@ -83,22 +70,11 @@ class ProductResource extends Resource
     }
 
 
-        /**
-     * @param int $limit
-     * @param Closure $callback
-     * @param Closure $resolveCount
-     * @param array $criteria
-     * @return void
-     */
     public function clean(int $limit, Closure $callback, Closure $resolveCount, array $criteria = []): void
     {
     }
 
 
-        /**
-     * @param array $result
-     * @return Collection
-     */
     public function mapTo(array $result): Collection
     {
         $ids = Arr::pluck($result['hits']['hits'], '_source.id');
@@ -111,10 +87,6 @@ class ProductResource extends Resource
     }
 
 
-    /**
-     * @param Vehicle $vehicle
-     * @return array
-     */
     public function buildDocument($vehicle): array
     {
         $isActive = $product->category_id
@@ -136,9 +108,6 @@ class ProductResource extends Resource
         return $data;
     }
 
-        /**
-     * @return array
-     */
     public function mapping(): array
     {
         return [
@@ -174,18 +143,14 @@ class ProductResource extends Resource
         ];
     }
 
-        /**
-     * @param Vehicle $vehicle
-     * @return int
-     */
     private function calcWeight(Vehicle $vehicle): int
     {
     }
 }
 ```
 
-
 ### Step 2
+
 Add your index resource into **e-search** config within "resources" section
 
     'resources' => [

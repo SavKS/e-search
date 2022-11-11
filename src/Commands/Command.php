@@ -24,10 +24,6 @@ abstract class Command extends BaseCommand
 {
     use ConfirmableTrait;
 
-    /**
-     * @param Closure $handler
-     * @return void
-     */
     protected function runtimeWrapper(Closure $handler): void
     {
         try {
@@ -55,11 +51,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**
-     * @param MutableResource $resource
-     * @param Client $client
-     * @return string
-     */
     protected function resolveIndexName(MutableResource $resource, Client $client): string
     {
         return $client->connection->resolveIndexName(
@@ -121,9 +112,6 @@ abstract class Command extends BaseCommand
             $resources;
     }
 
-    /**
-     * @return array|null
-     */
     protected function resolveCriteria(): ?array
     {
         $criteriaJSON = $this->option('criteria');
@@ -141,9 +129,6 @@ abstract class Command extends BaseCommand
         return $criteria;
     }
 
-    /**
-     * @return Client
-     */
     protected function makeClient(): Client
     {
         return new Client(
@@ -151,10 +136,7 @@ abstract class Command extends BaseCommand
         );
     }
 
-    /**
-     * @return array
-     */
-    protected function getOptions()
+    protected function getOptions(): array
     {
         return [
             ['force', null, InputOption::VALUE_NONE, 'Force the operation to run when in production.'],

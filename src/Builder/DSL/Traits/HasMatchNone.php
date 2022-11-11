@@ -8,9 +8,6 @@ trait HasMatchNone
 {
     use AsConditionHelper;
 
-    /**
-     * @return $this
-     */
     public function matchNone(): static
     {
         return $this->addCondition(

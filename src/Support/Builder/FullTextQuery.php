@@ -11,37 +11,15 @@ use Savks\ESearch\Builder\DSL\{
 
 class FullTextQuery implements Queryable
 {
-    /**
-     * @var mixed|string
-     */
-    protected mixed $term;
-
-    /**
-     * @var array
-     */
-    protected array $fields;
-
-    /**
-     * @var SearchParams
-     */
     protected SearchParams $params;
 
-    /**
-     * @param mixed $term
-     * @param array $fields
-     */
-    public function __construct(mixed $term, array $fields)
-    {
-        $this->term = $term;
-        $this->fields = $fields;
-
+    public function __construct(
+        protected readonly mixed $term,
+        protected readonly array $fields
+    ) {
         $this->params = new SearchParams();
     }
 
-    /**
-     * @param SearchParams|Closure $predicate
-     * @return $this
-     */
     public function changeSearchParams(SearchParams|Closure $predicate): static
     {
         $params = \call_user_func($predicate, $this->params);
@@ -55,26 +33,16 @@ class FullTextQuery implements Queryable
         return $this;
     }
 
-    /**
-     * @param mixed $term
-     * @return bool
-     */
     protected function checkTerm(mixed $term): bool
     {
         return \is_string($term) && \json_encode($term) !== false;
     }
 
-    /**
-     * @return string|null
-     */
     public function term(): ?string
     {
         return $this->checkTerm($this->term) ? $this->term : null;
     }
 
-    /**
-     * @return Query
-     */
     public function toQuery(): Query
     {
         if ($this->checkTerm($this->term)) {
@@ -92,9 +60,6 @@ class FullTextQuery implements Queryable
         ]);
     }
 
-    /**
-     * @return string
-     */
     protected function clearTerm(): string
     {
         $term = mb_strtolower(
@@ -114,9 +79,6 @@ class FullTextQuery implements Queryable
         );
     }
 
-    /**
-     * @return string
-     */
     protected function prepareSearchTerm(): string
     {
         $term = $this->clearTerm();
@@ -134,9 +96,6 @@ class FullTextQuery implements Queryable
         return \implode(' ', $simpleWords);
     }
 
-    /**
-     * @return string
-     */
     protected function prepareSearchQuery(): string
     {
         $term = $this->prepareSearchTerm();

@@ -16,19 +16,10 @@ use Elastic\Elasticsearch\Exception\{
 
 class RemoveRedundantIndices extends Command
 {
-    /**
-     * @var string
-     */
     protected $name = 'e-search:remove-redundant-indices';
 
-    /**
-     * @var string
-     */
     protected $description = 'Fill indices';
 
-    /**
-     * @return void
-     */
     public function handle(): void
     {
         if (! $this->confirmToProceed()) {
@@ -64,9 +55,6 @@ class RemoveRedundantIndices extends Command
     }
 
     /**
-     * @param MutableResource $resource
-     * @param Client $client
-     * @return void
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException

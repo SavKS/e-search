@@ -7,27 +7,15 @@ use Savks\ESearch\Builder\Builder;
 
 abstract class Resource
 {
-    /**
-     * @var Config
-     */
     protected Config $config;
 
-    /**
-     * @var string|null
-     */
     protected ?string $indexName = null;
 
-    /**
-     * @return void
-     */
     final public function __construct()
     {
         //
     }
 
-    /**
-     * @return string
-     */
     public static function name(): string
     {
         $classname = class_basename(static::class);
@@ -37,18 +25,11 @@ abstract class Resource
         );
     }
 
-    /**
-     * @return string
-     */
     public function indexName(): string
     {
         return $this->indexName ?? static::name();
     }
 
-    /**
-     * @param string $name
-     * @return $this
-     */
     public function useIndex(string $name): static
     {
         $this->indexName = $name;
@@ -56,22 +37,13 @@ abstract class Resource
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function documentIdBy(): string
     {
         return 'id';
     }
 
-    /**
-     * @param Config $config
-     */
     abstract public static function configure(Config $config): void;
 
-    /**
-     * @return Config
-     */
     public function config(): Config
     {
         if (! isset($this->config)) {
@@ -83,10 +55,6 @@ abstract class Resource
         return $this->config;
     }
 
-    /**
-     * @param string $name
-     * @return Builder
-     */
     public static function connection(string $name): Builder
     {
         return new Builder(
@@ -95,9 +63,6 @@ abstract class Resource
         );
     }
 
-    /**
-     * @return Builder
-     */
     public static function query(): Builder
     {
         return new Builder(

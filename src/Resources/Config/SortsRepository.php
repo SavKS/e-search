@@ -14,10 +14,6 @@ class SortsRepository
      */
     protected array $sorts = [];
 
-    /**
-     * @param Sort $sort
-     * @return static
-     */
     public function add(Sort $sort): static
     {
         $this->sorts[] = $sort;
@@ -26,7 +22,6 @@ class SortsRepository
     }
 
     /**
-     * @param bool $visibleOnly
      * @return array<int, Sort>
      */
     public function all(bool $visibleOnly = false): array
@@ -47,9 +42,6 @@ class SortsRepository
     }
 
     /**
-     * @param array|string $field
-     * @param Closure|null $handler
-     * @return $this
      * @throws BindingResolutionException
      */
     public function create(array|string $field, Closure $handler = null): static
@@ -66,9 +58,6 @@ class SortsRepository
     }
 
     /**
-     * @param array|string $field
-     * @param Closure|null $handler
-     * @return $this
      * @throws BindingResolutionException
      */
     public function createDesc(array|string $field, Closure $handler = null): static
@@ -83,9 +72,6 @@ class SortsRepository
     }
 
     /**
-     * @param array|string $field
-     * @param Closure|null $handler
-     * @return $this
      * @throws BindingResolutionException
      */
     public function createBothOrders(array|string $field, Closure $handler = null): static
@@ -106,11 +92,6 @@ class SortsRepository
         return $this;
     }
 
-    /**
-     * @param string $id
-     * @param bool $visibleOnly
-     * @return Sort|null
-     */
     public function findById(string $id, bool $visibleOnly = false): ?Sort
     {
         foreach ($this->all() as $item) {
@@ -122,11 +103,6 @@ class SortsRepository
         return null;
     }
 
-    /**
-     * @param string $id
-     * @param bool $visibleOnly
-     * @return Sort|null
-     */
     public function findByIdOrFail(string $id, bool $visibleOnly = false): ?Sort
     {
         if ($sort = $this->findById($id, $visibleOnly)) {

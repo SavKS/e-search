@@ -7,14 +7,8 @@ use Savks\ESearch\Builder\Sort;
 
 class SortFactory
 {
-    /**
-     * @var array
-     */
     protected array $config = [];
 
-    /**
-     * @param array|string $field
-     */
     public function __construct(array|string $field)
     {
         $this->config = [
@@ -24,11 +18,6 @@ class SortFactory
         ];
     }
 
-    /**
-     * @param string $value
-     * @param bool $appendOrder
-     * @return static
-     */
     public function id(string $value, bool $appendOrder = true): static
     {
         $this->config['id'] = $appendOrder ? "{$value}_{$this->config['order']}" : $value;
@@ -36,10 +25,6 @@ class SortFactory
         return $this;
     }
 
-    /**
-     * @param string $value
-     * @return static
-     */
     public function name(string $value): static
     {
         $this->config['name'] = $value;
@@ -47,9 +32,6 @@ class SortFactory
         return $this;
     }
 
-    /**
-     * @return static
-     */
     public function asc(): static
     {
         $this->config['order'] = Sort::ASC;
@@ -57,9 +39,6 @@ class SortFactory
         return $this;
     }
 
-    /**
-     * @return static
-     */
     public function desc(): static
     {
         $this->config['order'] = Sort::DESC;
@@ -67,10 +46,6 @@ class SortFactory
         return $this;
     }
 
-    /**
-     * @param array $options
-     * @return static
-     */
     public function options(array $options): static
     {
         $this->config['options'] = $options;
@@ -78,9 +53,6 @@ class SortFactory
         return $this;
     }
 
-    /**
-     * @return static
-     */
     public function hidden(): static
     {
         $this->config['visible'] = false;
@@ -89,7 +61,6 @@ class SortFactory
     }
 
     /**
-     * @return Sort
      * @throws BindingResolutionException
      */
     public function compose(): Sort

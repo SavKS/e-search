@@ -19,11 +19,6 @@ class ScopesRepository
         return $this->callbacks;
     }
 
-    /**
-     * @param string $name
-     * @param Closure $callback
-     * @return $this
-     */
     public function add(string $name, Closure $callback): self
     {
         $this->callbacks[$name] = $callback;
@@ -31,10 +26,6 @@ class ScopesRepository
         return $this;
     }
 
-    /**
-     * @param string $name
-     * @return Closure|null
-     */
     public function findByName(string $name): ?Closure
     {
         foreach ($this->all() as $scopeName => $callback) {

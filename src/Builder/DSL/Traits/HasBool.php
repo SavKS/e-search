@@ -8,10 +8,6 @@ trait HasBool
 {
     use AsConditionHelper;
 
-    /**
-     * @param callable|null $callback
-     * @return BoolCondition|$this
-     */
     public function bool(callable $callback = null): static|BoolCondition
     {
         $condition = new BoolCondition();

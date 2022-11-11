@@ -14,23 +14,22 @@ use Savks\ESearch\{
 
 class ESearchServiceProvider extends ServiceProvider
 {
-    /**
-     * @return void
-     */
     public function register(): void
     {
-        $this->app->singleton(ResourcesRepository::class, function (Application $app) {
-            return new ResourcesRepository(
+        $this->app->singleton(
+            ResourcesRepository::class,
+            fn (Application $app) => new ResourcesRepository(
                 $app['config']->get('e-search.resources', [])
-            );
-        });
+            )
+        );
 
-        $this->app->singleton(ConnectionsManager::class, function (Application $app) {
-            return new ConnectionsManager(
+        $this->app->singleton(
+            ConnectionsManager::class,
+            fn (Application $app) => new ConnectionsManager(
                 $app['config']->get('e-search.connections', []),
                 $app['config']->get('e-search.default_connection', []),
-            );
-        });
+            )
+        );
 
         $this->app->singleton(PerformanceTracker::class, function (Application $app) {
             $trackerFQN = $app['config']->get('e-search.performance_tracker');
@@ -39,10 +38,7 @@ class ESearchServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * @return void
-     */
-    public function boot()
+    public function boot(): void
     {
         $this->publishConfigs();
 
@@ -58,9 +54,6 @@ class ESearchServiceProvider extends ServiceProvider
         );
     }
 
-    /**
-     * @return void
-     */
     protected function publishConfigs(): void
     {
         $source = \dirname(__DIR__, 2) . '/resources/configs/e-search.php';

@@ -6,14 +6,8 @@ use Savks\ESearch\Elasticsearch\RequestTypes;
 
 class RequestConfig implements RequestConfigContract
 {
-    /**
-     * @var string|bool|null
-     */
     protected string|bool|null $refresh = null;
 
-    /**
-     * @return $this
-     */
     public function refresh(): self
     {
         $this->refresh = true;
@@ -21,9 +15,6 @@ class RequestConfig implements RequestConfigContract
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function waitForRefresh(): self
     {
         $this->refresh = 'wait_for';
@@ -31,9 +22,6 @@ class RequestConfig implements RequestConfigContract
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function dontRefresh(): self
     {
         $this->refresh = null;
@@ -41,11 +29,6 @@ class RequestConfig implements RequestConfigContract
         return $this;
     }
 
-    /**
-     * @param RequestTypes $requestType
-     * @param array $request
-     * @return array
-     */
     public function applyToRequest(RequestTypes $requestType, array $request): array
     {
         if ($this->refresh !== null) {

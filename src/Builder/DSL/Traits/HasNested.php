@@ -11,11 +11,6 @@ trait HasNested
 {
     use AsConditionHelper;
 
-    /**
-     * @param string $path
-     * @param callable|Query $predicate
-     * @return static
-     */
     public function nested(string $path, callable|Query $predicate): static
     {
         $query = $predicate instanceof Query ? $predicate : new Query();

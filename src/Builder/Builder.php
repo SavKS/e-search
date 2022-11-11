@@ -29,62 +29,27 @@ class Builder
     use Traits\HasLazyEach;
     use Traits\HasLazyEachBy;
 
-    /**
-     * @var Resource
-     */
-    public readonly Resource $resource;
-
-    /**
-     * @var Client
-     */
     public readonly Client $client;
 
-    /**
-     * @var int
-     */
     final protected const DEFAULT_LIMIT = 12;
 
-    /**
-     * @var int|null
-     */
     protected ?int $maxItemsLimit = null;
 
-    /**
-     * @var int
-     */
     protected int $maxItemsLimitSettingValue;
 
-    /**
-     * @var array
-     */
     protected array $config;
 
-    /**
-     * @var array
-     */
     protected array $sortConfig = [
         'ids' => [],
         'payload' => null,
     ];
 
-    /**
-     * @var bool
-     */
     protected bool $isSortWithScore = false;
 
-    /**
-     * @var int
-     */
     protected int $limit = self::DEFAULT_LIMIT;
 
-    /**
-     * @var int
-     */
     protected int $offset = 0;
 
-    /**
-     * @var array|null
-     */
     protected ?array $selectedFields = null;
 
     /**
@@ -92,32 +57,19 @@ class Builder
      */
     protected array $queries = [];
 
-    /**
-     * @var array
-     */
     protected array $customAggregations = [];
 
-    /**
-     * @var bool
-     */
     protected bool $skipHits = false;
 
-    /**
-     * @param Resource $resource
-     * @param string|null $connection
-     */
-    public function __construct(Resource $resource, string $connection = null)
-    {
-        $this->resource = $resource;
+    public function __construct(
+        public readonly Resource $resource,
+        string $connection = null
+    ) {
         $this->client = new Client($connection);
 
         $this->limit = static::DEFAULT_LIMIT;
     }
 
-    /**
-     * @param array $fields
-     * @return $this
-     */
     public function select(array $fields): static
     {
         $this->selectedFields = $fields;
@@ -125,13 +77,6 @@ class Builder
         return $this;
     }
 
-    /**
-     * @param array|string|null $data
-     * @param array $options
-     * @param array|string|null $fallback
-     * @param bool $visibleOnly
-     * @return $this
-     */
     public function sortByWithScore(
         array|string|null $data,
         array $options = [],
@@ -143,13 +88,6 @@ class Builder
         return $this->sortBy($data, $options, $fallback, $visibleOnly);
     }
 
-    /**
-     * @param array|string|null $data
-     * @param array $options
-     * @param array|string|null $fallback
-     * @param bool $visibleOnly
-     * @return $this
-     */
     public function sortBy(
         array|string|null $data,
         array $options = [],
@@ -196,11 +134,6 @@ class Builder
     }
 
     /**
-     * @param int|string $key
-     * @param array|string $value
-     * @param bool $visibleOnly
-     * @return array
-     *
      * @throws InvalidArgumentException
      */
     protected function processSort(int|string $key, array|string $value, bool $visibleOnly = true): array
@@ -246,10 +179,6 @@ class Builder
         return $sorts;
     }
 
-    /**
-     * @param int $count
-     * @return $this
-     */
     public function limit(int $count): static
     {
         $this->limit = $count;
@@ -257,9 +186,6 @@ class Builder
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function withoutHits(): static
     {
         $this->skipHits = true;
@@ -267,10 +193,6 @@ class Builder
         return $this;
     }
 
-    /**
-     * @param int $count
-     * @return $this
-     */
     public function offset(int $count): static
     {
         $this->offset = $count;
@@ -279,9 +201,6 @@ class Builder
     }
 
     /**
-     * @param string $id
-     * @return bool
-     *
      * @throws InvalidArgumentException
      */
     protected function validateSort(string $id): bool
@@ -294,7 +213,9 @@ class Builder
     }
 
     /**
-     * @return int
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
      */
     protected function calcOffset(): int
     {
@@ -303,10 +224,6 @@ class Builder
             $this->offset;
     }
 
-    /**
-     * @param int $value
-     * @return $this
-     */
     public function setMaxItemsLimit(int $value): Builder
     {
         $this->maxItemsLimit = $value;
@@ -315,8 +232,6 @@ class Builder
     }
 
     /**
-     * @param int $page
-     * @return bool
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -327,7 +242,6 @@ class Builder
     }
 
     /**
-     * @return float
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -337,10 +251,6 @@ class Builder
         return \floor($this->resolveMaxItemsLimit() / $this->limit);
     }
 
-    /**
-     * @param Query|Queryable|callable $predicate
-     * @return $this
-     */
     public function addQuery(Query|Queryable|callable $predicate): static
     {
         if ($predicate instanceof Query) {
@@ -366,9 +276,6 @@ class Builder
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function toBodyQuery(): array
     {
         $result = [];
@@ -384,9 +291,6 @@ class Builder
         ];
     }
 
-    /**
-     * @return array
-     */
     public function toRequest(): array
     {
         $request = [
@@ -434,11 +338,6 @@ class Builder
         return $request;
     }
 
-    /**
-     * @param bool $pretty
-     * @param int $flags
-     * @return string
-     */
     public function toKibana(bool $pretty = false, int $flags = 0): string
     {
         $indexName = $this->client->connection->resolveIndexName(
@@ -464,9 +363,6 @@ class Builder
     }
 
     /**
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return Result
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -489,9 +385,6 @@ class Builder
     }
 
     /**
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return Result
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -512,11 +405,6 @@ class Builder
     }
 
     /**
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @param string $pageName
-     * @param int|null $page
-     * @return Result
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -556,10 +444,6 @@ class Builder
         return $factory->toResult($this->limit, $page);
     }
 
-    /**
-     * @param string $pageName
-     * @return int
-     */
     protected function extractPageNumberFromRequest(string $pageName): int
     {
         $reqPage = \request()->get($pageName);
@@ -575,7 +459,6 @@ class Builder
     }
 
     /**
-     * @return ElasticsearchResponse
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -589,7 +472,6 @@ class Builder
     }
 
     /**
-     * @return int
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -605,9 +487,6 @@ class Builder
     }
 
     /**
-     * @param ElasticsearchResponse $response
-     * @param int|null $page
-     * @return array
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -628,19 +507,11 @@ class Builder
         return $result;
     }
 
-    /**
-     * @return int
-     */
     protected function maxAllowedItems(): int
     {
         return (int)(($this->lastAllowedPage() - 1) * $this->limit + $this->limit);
     }
 
-    /**
-     * @param string $name
-     * @param array ...$args
-     * @return Builder
-     */
     public function applyScope(string $name, ...$args): Builder
     {
         $scopeCallback = $this->resource->config()->scopes->findByName($name);
@@ -652,11 +523,6 @@ class Builder
         return $scopeCallback($this, ...$args) ?? $this;
     }
 
-    /**
-     * @param string $name
-     * @param array $data
-     * @return $this
-     */
     public function addCustomAggregation(string $name, array $data): Builder
     {
         $this->customAggregations[$name] = $data;
@@ -665,7 +531,6 @@ class Builder
     }
 
     /**
-     * @return int
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException

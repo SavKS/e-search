@@ -11,38 +11,17 @@ class ConnectionsManager
      */
     protected array $connections;
 
-    /**
-     * @var array
-     */
-    protected array $connectionDeclarations;
-
-    /**
-     * @var string
-     */
-    protected string $defaultConnectionName;
-
-    /**
-     * @param array $connectionDeclarations
-     * @param string $defaultConnectionName
-     */
-    public function __construct(array $connectionDeclarations, string $defaultConnectionName)
-    {
-        $this->connectionDeclarations = $connectionDeclarations;
-        $this->defaultConnectionName = $defaultConnectionName;
+    public function __construct(
+        protected readonly array $connectionDeclarations,
+        protected readonly string $defaultConnectionName
+    ) {
     }
 
-    /**
-     * @return Connection
-     */
     public function resolveDefault(): Connection
     {
         return $this->resolve($this->defaultConnectionName);
     }
 
-    /**
-     * @param string $name
-     * @return Connection
-     */
     public function resolve(string $name): Connection
     {
         if (! isset($this->connections[$name])) {
@@ -52,13 +31,9 @@ class ConnectionsManager
         return $this->connections[$name];
     }
 
-    /**
-     * @param string|null $name
-     * @return Connection
-     */
     protected function createConnection(string $name = null): Connection
     {
-        $name = $name ?? \config('e-search.default_connection');
+        $name ??= \config('e-search.default_connection');
 
         if (! $name) {
             throw new InvalidConfiguration('Default connection name is not defined');

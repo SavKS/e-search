@@ -8,11 +8,6 @@ trait HasTerms
 {
     use AsConditionHelper;
 
-    /**
-     * @param string $field
-     * @param array $values
-     * @return $this
-     */
     public function terms(string $field, array $values): static
     {
         return $this->addCondition(

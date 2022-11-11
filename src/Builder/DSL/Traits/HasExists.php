@@ -8,10 +8,6 @@ trait HasExists
 {
     use AsConditionHelper;
 
-    /**
-     * @param string $field
-     * @return $this
-     */
     public function exists(string $field): static
     {
         return $this->addCondition(

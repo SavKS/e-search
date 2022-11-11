@@ -8,10 +8,6 @@ trait HasRaw
 {
     use AsConditionHelper;
 
-    /**
-     * @param array $value
-     * @return $this
-     */
     public function raw(array $value): static
     {
         return $this->addCondition(

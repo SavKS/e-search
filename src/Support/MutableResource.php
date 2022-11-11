@@ -8,11 +8,11 @@ use Illuminate\Support\Arr;
 use Savks\ESearch\Resources\ResourceRunner;
 use Savks\ESearch\Updates\Updates;
 
+/**
+ * @template TEntity
+ */
 abstract class MutableResource extends Resource
 {
-    /**
-     * @return array
-     */
     public function prepareMapping(): array
     {
         $mapping = $this->mapping();
@@ -30,8 +30,7 @@ abstract class MutableResource extends Resource
     }
 
     /**
-     * @param mixed $entity
-     * @return array
+     * @param TEntity $entity
      */
     public function prepareDocuments(mixed $entity): array
     {
@@ -70,13 +69,6 @@ abstract class MutableResource extends Resource
         return [$document];
     }
 
-    /**
-     * @param array|null $ids
-     * @param int $limit
-     * @param Closure $callback
-     * @param Closure $resolveCount
-     * @param array $criteria
-     */
     abstract public function prepareSeed(
         ?array $ids,
         int $limit,
@@ -86,37 +78,22 @@ abstract class MutableResource extends Resource
     ): void;
 
     /**
-     * @param mixed $entity
-     * @return array
+     * @param TEntity $entity
      */
     abstract public function buildDocument(mixed $entity): array;
 
-    /**
-     * @return array
-     */
     public function index(): array
     {
         return [];
     }
 
-    /**
-     * @return array
-     */
     abstract public function mapping(): array;
 
-    /**
-     * @param Updates $updates
-     * @return Updates
-     */
     public function updates(Updates $updates): Updates
     {
         return $updates;
     }
 
-    /**
-     * @param string|null $connection
-     * @return ResourceRunner
-     */
     public static function runner(string $connection = null): ResourceRunner
     {
         return new ResourceRunner(

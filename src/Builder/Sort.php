@@ -9,82 +9,42 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
 
-class Sort implements Arrayable
+final class Sort implements Arrayable
 {
-    public const ASC = 'asc';
-    public const DESC = 'desc';
+    final public const ASC = 'asc';
+    final public const DESC = 'desc';
 
-    /**
-     * @var string
-     */
-    public string $id;
-
-    /**
-     * @var string
-     */
-    public string $name;
-
-    /**
-     * @var string|array
-     */
-    public string|array $field;
-
-    /**
-     * @var array
-     */
     public array $options;
 
-    /**
-     * @var bool
-     */
     public bool $visible;
 
-    /**
-     * @var string
-     */
     public string $order;
 
-    /**
-     * @param string $name
-     * @param string $id
-     * @param array|string $field
-     */
-    public function __construct(string $id, string $name, array|string $field)
-    {
-        $this->id = $id;
-        $this->name = $name;
-        $this->field = $field;
-
+    public function __construct(
+        public string $id,
+        public string $name,
+        public array|string $field
+    ) {
         $this->visible = false;
         $this->options = [];
 
-        $this->order = static::ASC;
+        $this->order = self::ASC;
     }
 
-    /**
-     * @return $this
-     */
-    public function asc(): Sort
+    public function asc(): self
     {
-        $this->order = static::ASC;
+        $this->order = self::ASC;
 
         return $this;
     }
 
-    /**
-     * @return $this
-     */
-    public function desc(): Sort
+    public function desc(): self
     {
-        $this->order = static::DESC;
+        $this->order = self::DESC;
 
         return $this;
     }
 
-    /**
-     * @param array $options
-     * @return self
-     */
     public function options(array $options): self
     {
         $this->options = $options;
@@ -92,10 +52,6 @@ class Sort implements Arrayable
         return $this;
     }
 
-    /**
-     * @param array $options
-     * @return array
-     */
     public function toArray(array $options = []): array
     {
         if (\is_array($this->field)) {
@@ -127,11 +83,9 @@ class Sort implements Arrayable
     }
 
     /**
-     * @param array $data
-     * @return Sort
      * @throws BindingResolutionException
      */
-    public static function fromArray(array $data): Sort
+    public static function fromArray(array $data): self
     {
         /** @var Validator $validator */
         $validator = app(ValidatorFactory::class)->make(
@@ -171,7 +125,7 @@ class Sort implements Arrayable
             );
         }
 
-        $sort = new static($data['id'], $data['name'], $data['field']);
+        $sort = new self($data['id'], $data['name'], $data['field']);
 
         if (! empty($data['visible'])) {
             $sort->visible = true;
@@ -182,7 +136,7 @@ class Sort implements Arrayable
         }
 
         if (isset($data['order'])) {
-            if ($data['order'] === static::DESC) {
+            if ($data['order'] === self::DESC) {
                 $sort->desc();
             } else {
                 $sort->asc();

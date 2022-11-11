@@ -14,21 +14,10 @@ use Savks\ESearch\Builder\{
 };
 
 /**
- * Trait HasLazyChunkBy
- * @package Savks\ESearch\Builder\Traits
- *
  * @mixin Builder
  */
 trait HasLazyChunkBy
 {
-    /**
-     * @param string $field
-     * @param string $value
-     * @param int $limit
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return Result
-     */
     protected function forPageAgainstField(
         string $field,
         ?string $value,
@@ -79,16 +68,6 @@ trait HasLazyChunkBy
         return $resultFactory->toResult($limit);
     }
 
-    /**
-     * @param string $field
-     * @param int $limit
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return LazyCollection<Result>
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     * @throws AuthenticationException
-     */
     public function lazyChunkBy(
         string $field,
         int $limit,
@@ -137,15 +116,6 @@ trait HasLazyChunkBy
         });
     }
 
-    /**
-     * @param string $field
-     * @param int $limit
-     * @param Closure|null $mapResolver
-     * @return LazyCollection<Result>
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function lazyChunkByWithMapping(string $field, int $limit, ?Closure $mapResolver = null): LazyCollection
     {
         return $this->lazyChunkBy($field, $limit, true, $mapResolver);

@@ -57,7 +57,6 @@ class ResourcesRepository
 
     /**
      * @param class-string<Resource> $nameOrFQN
-     * @return Resource
      */
     public function make(string $nameOrFQN): Resource
     {
@@ -74,11 +73,6 @@ class ResourcesRepository
         return new $resourceFQN();
     }
 
-    /**
-     * @param string $resourceFQN
-     * @param string|null $name
-     * @return $this
-     */
     public function register(string $resourceFQN, string $name = null): ResourcesRepository
     {
         if (! is_subclass_of($resourceFQN, Resource::class)) {

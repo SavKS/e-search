@@ -3,28 +3,15 @@
 namespace Savks\ESearch\Builder\Traits;
 
 use Closure;
+use Savks\ESearch\Builder\Builder;
 
 /**
- * Trait HasChunkBy
- * @package Savks\ESearch\Builder\Traits
- *
  * @mixin Builder
  */
 trait HasChunkBy
 {
     use HasLazyChunkBy;
 
-    /**
-     * @param string $field
-     * @param int $limit
-     * @param Closure $callback
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return void
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     * @throws AuthenticationException
-     */
     public function chunkBy(
         string $field,
         int $limit,
@@ -39,16 +26,6 @@ trait HasChunkBy
         }
     }
 
-    /**
-     * @param string $field
-     * @param int $limit
-     * @param Closure $callback
-     * @param Closure|null $mapResolver
-     * @return void
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function chunkByWithMapping(string $field, int $limit, Closure $callback, ?Closure $mapResolver = null): void
     {
         $this->chunkBy($field, $limit, $callback, true, $mapResolver);

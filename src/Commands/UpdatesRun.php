@@ -19,18 +19,11 @@ use Elastic\Elasticsearch\Exception\{
 
 class UpdatesRun extends Command
 {
-    /**
-     * @var string
-     */
     protected $name = 'e-search:updates:run';
 
-    /**
-     * @var string
-     */
     protected $description = 'Run resource updates';
 
     /**
-     * @return void
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -76,9 +69,6 @@ class UpdatesRun extends Command
     }
 
     /**
-     * @param MutableResource $resource
-     * @param Client $manager
-     * @return int|null
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -99,10 +89,7 @@ class UpdatesRun extends Command
         });
     }
 
-    /**
-     * @return array
-     */
-    protected function getOptions()
+    protected function getOptions(): array
     {
         return \array_merge(
             parent::getOptions(),

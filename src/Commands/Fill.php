@@ -28,19 +28,10 @@ use Savks\ESearch\Exceptions\{
 
 class Fill extends Command
 {
-    /**
-     * @var string
-     */
     protected $name = 'e-search:fill';
 
-    /**
-     * @var string
-     */
     protected $description = 'Fill indices';
 
-    /**
-     * @return void
-     */
     public function handle(): void
     {
         if (! $this->confirmToProceed()) {
@@ -102,18 +93,17 @@ class Fill extends Command
     }
 
     /**
-     * @param MutableResource $resource
-     * @param string $indexOriginName
-     * @param string $datetimeSuffix
-     * @param Client $client
-     * @return void
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function prepareIndex(MutableResource $resource, string $indexOriginName, string $datetimeSuffix, Client $client): void
-    {
+    protected function prepareIndex(
+        MutableResource $resource,
+        string $indexOriginName,
+        string $datetimeSuffix,
+        Client $client
+    ): void {
         $this->prepareForAliasCreating($resource, $indexOriginName, $client);
 
         $updatesRunner = new Runner($resource, $client->connection);
@@ -155,9 +145,6 @@ class Fill extends Command
     }
 
     /**
-     * @param MutableResource $resource
-     * @param Client $client
-     * @return void
      * @throws AuthenticationException
      * @throws NoNodeAvailableException
      * @throws ClientResponseException
@@ -171,10 +158,6 @@ class Fill extends Command
     }
 
     /**
-     * @param MutableResource $resource
-     * @param string $indexOriginName
-     * @param Client $client
-     * @return void
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -213,11 +196,6 @@ class Fill extends Command
         }
     }
 
-    /**
-     * @param MutableResource $resource
-     * @param Client $client
-     * @return void
-     */
     protected function seed(MutableResource $resource, Client $client): void
     {
         $indexFullName = $client->connection->resolveIndexName(
@@ -339,10 +317,6 @@ class Fill extends Command
     }
 
     /**
-     * @param MutableResource $resource
-     * @param string $indexOriginName
-     * @param Client $client
-     * @return void
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
@@ -410,10 +384,7 @@ class Fill extends Command
         );
     }
 
-    /**
-     * @return array
-     */
-    protected function getOptions()
+    protected function getOptions(): array
     {
         return \array_merge(
             parent::getOptions(),

@@ -6,27 +6,16 @@ use Closure;
 use Illuminate\Support\LazyCollection;
 
 use Savks\ESearch\Builder\{
+    Builder,
     Result,
     ResultFactory
 };
 
 /**
- * Trait HasLazyChunk
- * @package Savks\ESearch\Builder\Traits
- *
  * @mixin Builder
  */
 trait HasLazyChunk
 {
-    /**
-     * @param int $limit
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return LazyCollection<Result>
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     * @throws AuthenticationException
-     */
     public function lazyChunk(
         int $limit,
         bool $withMapping = false,
@@ -71,14 +60,6 @@ trait HasLazyChunk
         });
     }
 
-    /**
-     * @param int $limit
-     * @param Closure|null $mapResolver
-     * @return LazyCollection<Result>
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function lazyChunkWithMapping(int $limit, ?Closure $mapResolver = null): LazyCollection
     {
         return $this->lazyChunk($limit, true, $mapResolver);

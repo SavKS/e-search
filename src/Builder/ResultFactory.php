@@ -19,47 +19,17 @@ use Savks\ESearch\Support\{
 
 class ResultFactory
 {
-    /**
-     * @var Resource
-     */
-    protected Resource $resource;
-
-    /**
-     * @var array
-     */
-    protected array $raw;
-
-    /**
-     * @var bool
-     */
     protected bool $withMapping = false;
 
-    /**
-     * @var Closure|null
-     */
     protected ?Closure $mapResolver = null;
 
-    /**
-     * @var ElasticsearchResponse
-     */
-    protected ElasticsearchResponse $response;
-
-    /**
-     * @param Resource $resource
-     * @param array $raw
-     * @param ElasticsearchResponse $response
-     */
-    public function __construct(Resource $resource, array $raw, ElasticsearchResponse $response)
-    {
-        $this->resource = $resource;
-        $this->raw = $raw;
-        $this->response = $response;
+    public function __construct(
+        protected readonly Resource $resource,
+        protected readonly array $raw,
+        protected readonly ElasticsearchResponse $response
+    ) {
     }
 
-    /**
-     * @param Closure|null $mapResolver
-     * @return $this
-     */
     public function withMapping(Closure $mapResolver = null): static
     {
         $this->withMapping = true;
@@ -68,11 +38,6 @@ class ResultFactory
         return $this;
     }
 
-    /**
-     * @param int $limit
-     * @param int|null $page
-     * @return Result
-     */
     public function toResult(int $limit, int $page = null): Result
     {
         $items = $this->prepareItems();
@@ -97,9 +62,6 @@ class ResultFactory
         );
     }
 
-    /**
-     * @return Collection
-     */
     protected function prepareItems(): Collection
     {
         $items = [];
@@ -144,13 +106,6 @@ class ResultFactory
         return $items;
     }
 
-    /**
-     * @param iterable $items
-     * @param int $perPage
-     * @param int $page
-     * @param int $total
-     * @return LengthAwarePaginator
-     */
     protected function makePaginator(iterable $items, int $perPage, int $page, int $total): LengthAwarePaginator
     {
         return new LengthAwarePaginator($items, $total, $perPage, $page, [

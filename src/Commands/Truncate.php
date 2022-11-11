@@ -6,19 +6,10 @@ use Savks\ESearch\Support\MutableResource;
 
 class Truncate extends Command
 {
-    /**
-     * @var string
-     */
     protected $name = 'e-search:truncate';
 
-    /**
-     * @var string
-     */
     protected $description = 'Truncate indices';
 
-    /**
-     * @return void
-     */
     public function handle(): void
     {
         if (! $this->confirmToProceed()) {

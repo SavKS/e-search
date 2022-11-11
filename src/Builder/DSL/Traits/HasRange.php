@@ -8,11 +8,6 @@ trait HasRange
 {
     use AsConditionHelper;
 
-    /**
-     * @param string $field
-     * @param array $data
-     * @return $this
-     */
     public function range(string $field, array $data): static
     {
         return $this->addCondition(
