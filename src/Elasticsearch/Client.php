@@ -26,7 +26,7 @@ class Client
 {
     public readonly Connection $connection;
 
-    protected readonly RequestConfigContract $requestConfig;
+    protected RequestConfigContract $requestConfig;
 
     public function __construct(string $connection = null)
     {
