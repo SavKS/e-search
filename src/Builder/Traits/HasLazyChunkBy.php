@@ -98,7 +98,7 @@ trait HasLazyChunkBy
 
                 $lastValue = Arr::get(
                     \last($result->hits()),
-                    $field
+                    $field === '_id' ? $field : "_source.{$field}"
                 );
 
                 if ($lastValue === null) {
