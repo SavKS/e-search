@@ -17,6 +17,9 @@ trait HasLazyEach
 {
     use HasLazyChunk;
 
+    /**
+     * @return LazyCollection<Result>
+     */
     public function lazyEach(
         int $limit,
         bool $withMapping = false,
@@ -33,6 +36,9 @@ trait HasLazyEach
             );
     }
 
+    /**
+     * @return LazyCollection<Result>
+     */
     public function lazyEachWithMapping(int $limit, ?Closure $mapResolver = null): LazyCollection
     {
         return $this->lazyEach($limit, true, $mapResolver);

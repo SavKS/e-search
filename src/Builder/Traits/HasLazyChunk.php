@@ -16,6 +16,9 @@ use Savks\ESearch\Builder\{
  */
 trait HasLazyChunk
 {
+    /**
+     * @return LazyCollection<Result>
+     */
     public function lazyChunk(
         int $limit,
         bool $withMapping = false,
@@ -60,6 +63,9 @@ trait HasLazyChunk
         });
     }
 
+    /**
+     * @return LazyCollection<Result>
+     */
     public function lazyChunkWithMapping(int $limit, ?Closure $mapResolver = null): LazyCollection
     {
         return $this->lazyChunk($limit, true, $mapResolver);

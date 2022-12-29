@@ -20,7 +20,7 @@ trait HasLazyChunkBy
 {
     protected function forPageAgainstField(
         string $field,
-        ?string $value,
+        string|int|float|null $value,
         int $limit,
         bool $withMapping = false,
         ?Closure $mapResolver = null
@@ -28,8 +28,6 @@ trait HasLazyChunkBy
         $dslQuery = $this->toRequest();
 
         $dslQuery['size'] = $limit;
-
-        $lastField = $field === '_id' ? $field : "_source.{$field}";
 
         if ($value !== null) {
             $dslQuery['body']['query'] = [
@@ -39,7 +37,7 @@ trait HasLazyChunkBy
 
                         [
                             'range' => [
-                                $lastField => [
+                                $field => [
                                     'gt' => $value,
                                 ],
                             ],
@@ -68,6 +66,9 @@ trait HasLazyChunkBy
         return $resultFactory->toResult($limit);
     }
 
+    /**
+     * @return LazyCollection<Result>
+     */
     public function lazyChunkBy(
         string $field,
         int $limit,
@@ -76,8 +77,6 @@ trait HasLazyChunkBy
     ): LazyCollection {
         return LazyCollection::make(function () use ($field, $limit, $withMapping, $mapResolver) {
             $done = false;
-
-            $lastField = $field === '_id' ? $field : "_source.{$field}";
             $lastValue = null;
 
             while (! $done) {
@@ -99,14 +98,14 @@ trait HasLazyChunkBy
 
                 $lastValue = Arr::get(
                     \last($result->hits()),
-                    $lastField
+                    $field
                 );
 
                 if ($lastValue === null) {
                     throw new ChunkFieldAbsentException(
                         \sprintf(
                             'Field "%s" is absent in the response, but is was expected to be present',
-                            $lastField
+                            $field
                         )
                     );
                 }
@@ -116,6 +115,9 @@ trait HasLazyChunkBy
         });
     }
 
+    /**
+     * @return LazyCollection<Result>
+     */
     public function lazyChunkByWithMapping(string $field, int $limit, ?Closure $mapResolver = null): LazyCollection
     {
         return $this->lazyChunkBy($field, $limit, true, $mapResolver);

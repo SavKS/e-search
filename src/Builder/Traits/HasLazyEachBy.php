@@ -17,6 +17,9 @@ trait HasLazyEachBy
 {
     use HasLazyChunkBy;
 
+    /**
+     * @return LazyCollection<Result>
+     */
     public function lazyEachBy(
         string $field,
         int $limit,
@@ -35,6 +38,9 @@ trait HasLazyEachBy
             );
     }
 
+    /**
+     * @return LazyCollection<Result>
+     */
     public function lazyEachByWithMapping(string $field, int $limit, ?Closure $mapResolver = null): LazyCollection
     {
         return $this->lazyEachBy($field, $limit, true, $mapResolver);
