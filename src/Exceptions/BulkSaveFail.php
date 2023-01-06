@@ -29,7 +29,7 @@ final class BulkSaveFail extends OperationFail
         return $this->failedItems;
     }
 
-    public static function makeFromResponse(ElasticsearchResponse $response): self
+    public static function makeFromResponse(ElasticsearchResponse $response): static
     {
         $failedItems = [];
 
