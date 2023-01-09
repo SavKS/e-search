@@ -3,9 +3,6 @@
 namespace Savks\ESearch\Elasticsearch;
 
 use Elastic\Elasticsearch\{
-    Exception\AuthenticationException,
-    Exception\ClientResponseException,
-    Exception\ServerResponseException,
     Client,
     ClientBuilder
 };
@@ -65,9 +62,6 @@ class Connection
         return $this->logger;
     }
 
-    /**
-     * @throws AuthenticationException
-     */
     public function client(): Client
     {
         if (! isset($this->client)) {
@@ -101,11 +95,6 @@ class Connection
         return $this->errorsHandler;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function resolveIndexSettings(string $indexName, string $settingName = null): mixed
     {
         $prefixedIndexName = $this->resolveIndexName($indexName);

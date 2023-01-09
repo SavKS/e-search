@@ -3,7 +3,6 @@
 namespace Savks\ESearch\Commands;
 
 use DB;
-use Elastic\Transport\Exception\NoNodeAvailableException;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
@@ -11,12 +10,6 @@ use Savks\ESearch\Updates\Runner;
 use Str;
 use Symfony\Component\Console\Input\InputOption;
 
-use Elastic\Elasticsearch\Exception\{
-    AuthenticationException,
-    ClientResponseException,
-    MissingParameterException,
-    ServerResponseException
-};
 use Illuminate\Support\{
     Arr,
     Collection
@@ -92,19 +85,13 @@ class Fill extends Command
         }
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
     protected function prepareIndex(
         MutableResource $resource,
         string $indexOriginName,
         string $datetimeSuffix,
         Client $client
     ): void {
-        $this->prepareForAliasCreating($resource, $indexOriginName, $client);
+        $this->prepareForAliasCreating($indexOriginName, $client);
 
         $updatesRunner = new Runner($resource, $client->connection);
 
@@ -144,12 +131,6 @@ class Fill extends Command
         });
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws NoNodeAvailableException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     protected function waitForIndexToBeReady(MutableResource $resource, Client $client): void
     {
         $client->elasticsearchClient()->indices()->refresh([
@@ -157,13 +138,7 @@ class Fill extends Command
         ]);
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
-    protected function prepareForAliasCreating(MutableResource $resource, string $indexOriginName, Client $client): void
+    protected function prepareForAliasCreating(string $indexOriginName, Client $client): void
     {
         $aliasFullName = $client->connection->resolveIndexName(
             $indexOriginName
@@ -316,12 +291,6 @@ class Fill extends Command
         }
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
     protected function assignIndexAlias(MutableResource $resource, string $indexOriginName, Client $client): void
     {
         $aliasFullName = $client->connection->resolveIndexName(
@@ -386,13 +355,12 @@ class Fill extends Command
 
     protected function getOptions(): array
     {
-        return \array_merge(
-            parent::getOptions(),
-            [
-                ['items-limit', null, InputOption::VALUE_OPTIONAL, 'Limit items per iteration.'],
-                ['with-query-log', null, InputOption::VALUE_NONE, 'Run with query log.'],
-                ['no-seed', null, InputOption::VALUE_NONE, 'Without data seeding.'],
-            ]
-        );
+        return [
+            ...parent::getOptions(),
+
+            ['items-limit', null, InputOption::VALUE_OPTIONAL, 'Limit items per iteration.'],
+            ['with-query-log', null, InputOption::VALUE_NONE, 'Run with query log.'],
+            ['no-seed', null, InputOption::VALUE_NONE, 'Without data seeding.'],
+        ];
     }
 }

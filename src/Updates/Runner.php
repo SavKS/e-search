@@ -11,7 +11,6 @@ use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Support\MutableResource;
 
 use Elastic\Elasticsearch\{
-    Exception\AuthenticationException,
     Exception\ClientResponseException,
     Exception\MissingParameterException,
     Exception\ServerResponseException,
@@ -43,12 +42,6 @@ class Runner
         return $this->newQuery()->exists();
     }
 
-    /**
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     * @throws AuthenticationException
-     */
     public function apply(Closure $stepCallback = null): ?int
     {
         if (! $this->hasUpdates()) {

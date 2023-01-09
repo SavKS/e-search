@@ -10,11 +10,6 @@ use RuntimeException;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Support\Resource;
 
-use Elastic\Elasticsearch\Exception\{
-    AuthenticationException,
-    ClientResponseException,
-    ServerResponseException
-};
 use Savks\ESearch\Builder\DSL\{
     Query,
     Queryable
@@ -212,11 +207,6 @@ class Builder
         return true;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     protected function calcOffset(): int
     {
         return $this->offset + $this->limit > $this->resolveMaxItemsLimit() ?
@@ -231,21 +221,11 @@ class Builder
         return $this;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     protected function isExceededPageLimit(int $page): bool
     {
         return $this->limit * $page > $this->resolveMaxItemsLimit();
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function lastAllowedPage(): float
     {
         return \floor($this->resolveMaxItemsLimit() / $this->limit);
@@ -338,7 +318,7 @@ class Builder
         return $request;
     }
 
-    public function toKibana(bool $pretty = false, int $flags = 0): string
+    public function toKibana(bool $pretty = true, int $flags = 0): string
     {
         $indexName = $this->client->connection->resolveIndexName(
             $this->resource->indexName()
@@ -362,11 +342,6 @@ class Builder
         return \implode("\n", $result);
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function get(bool $withMapping = false, Closure $mapResolver = null): Result
     {
         $response = $this->exec();
@@ -384,11 +359,6 @@ class Builder
         return $factory->toResult($this->limit);
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function all(bool $withMapping = false, Closure $mapResolver = null): Result
     {
         $oldLimit = $this->limit;
@@ -404,11 +374,6 @@ class Builder
         return $result;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function paginate(
         bool $withMapping = false,
         Closure $mapResolver = null,
@@ -458,11 +423,6 @@ class Builder
         );
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     protected function exec(): ElasticsearchResponse
     {
         return $this->client->search(
@@ -471,11 +431,6 @@ class Builder
         );
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function count(): int
     {
         $response = $this->client->count(
@@ -486,11 +441,6 @@ class Builder
         return $response['count'];
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     protected function normalizeRawResult(ElasticsearchResponse $response, int $page = null): array
     {
         $result = $response->asArray();
@@ -530,11 +480,6 @@ class Builder
         return $this;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     protected function resolveMaxItemsLimit(): int
     {
         if ($this->maxItemsLimit !== null) {

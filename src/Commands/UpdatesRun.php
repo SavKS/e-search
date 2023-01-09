@@ -2,7 +2,6 @@
 
 namespace Savks\ESearch\Commands;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Models\ESearchUpdate;
 use Savks\ESearch\Resources\ResourcesRepository;
@@ -10,26 +9,12 @@ use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Updates\Runner;
 use Symfony\Component\Console\Input\InputOption;
 
-use Elastic\Elasticsearch\Exception\{
-    AuthenticationException,
-    ClientResponseException,
-    MissingParameterException,
-    ServerResponseException
-};
-
 class UpdatesRun extends Command
 {
     protected $name = 'e-search:updates:run';
 
     protected $description = 'Run resource updates';
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     * @throws BindingResolutionException
-     */
     public function handle(): void
     {
         if (! $this->confirmToProceed()) {
@@ -68,12 +53,6 @@ class UpdatesRun extends Command
         }
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
     protected function runUpdates(MutableResource $resource, Client $manager): ?int
     {
         $runner = new Runner($resource, $manager->connection);
@@ -91,13 +70,12 @@ class UpdatesRun extends Command
 
     protected function getOptions(): array
     {
-        return \array_merge(
-            parent::getOptions(),
-            [
-                ['items-limit', null, InputOption::VALUE_OPTIONAL, 'Limit items per iteration.'],
-                ['hide-resource-info', null, InputOption::VALUE_NONE, 'Hide resource info.'],
-                ['with-query-log', null, InputOption::VALUE_NONE, 'Run with query log.'],
-            ]
-        );
+        return [
+            ...parent::getOptions(),
+
+            ['items-limit', null, InputOption::VALUE_OPTIONAL, 'Limit items per iteration.'],
+            ['hide-resource-info', null, InputOption::VALUE_NONE, 'Hide resource info.'],
+            ['with-query-log', null, InputOption::VALUE_NONE, 'Run with query log.'],
+        ];
     }
 }

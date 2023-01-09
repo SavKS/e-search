@@ -7,13 +7,6 @@ use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Resources\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
 
-use Elastic\Elasticsearch\Exception\{
-    AuthenticationException,
-    ClientResponseException,
-    MissingParameterException,
-    ServerResponseException
-};
-
 class RemoveRedundantIndices extends Command
 {
     protected $name = 'e-search:remove-redundant-indices';
@@ -54,12 +47,6 @@ class RemoveRedundantIndices extends Command
         }
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
     protected function process(MutableResource $resource, Client $client): void
     {
         $aliasName = $client->connection->resolveIndexName(

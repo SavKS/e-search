@@ -9,10 +9,6 @@ use Savks\ESearch\Debug\PerformanceTracker;
 use stdClass;
 
 use Elastic\Elasticsearch\{
-    Exception\AuthenticationException,
-    Exception\ClientResponseException,
-    Exception\MissingParameterException,
-    Exception\ServerResponseException,
     Response\Elasticsearch as ElasticsearchResponse,
     Client as ElasticsearchClient
 };
@@ -37,20 +33,11 @@ class Client
         $this->requestConfig = new RequestConfig();
     }
 
-    /**
-     * @throws AuthenticationException
-     */
     public function elasticsearchClient(): ElasticsearchClient
     {
         return $this->connection->client();
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
     public function save(Resource $resource, array $document): ElasticsearchResponse|Promise
     {
         $response = $this->measure(
@@ -71,11 +58,6 @@ class Client
         return $response;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function bulkSave(Resource $resource, iterable $documents): ElasticsearchResponse
     {
         $params = [];
@@ -105,12 +87,6 @@ class Client
         return $response;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
     public function delete(Resource $resource, int|string $id): ElasticsearchResponse
     {
         $response = $this->measure(
@@ -130,11 +106,6 @@ class Client
         return $response;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function bulkDelete(Resource $resource, iterable $ids): ElasticsearchResponse
     {
         $params = [];
@@ -162,12 +133,6 @@ class Client
         return $response;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
     public function deleteByQuery(Resource $resource, Query|array $bodyQuery): ElasticsearchResponse|Promise
     {
         $response = $this->measure(
@@ -189,12 +154,6 @@ class Client
         return $response;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws MissingParameterException
-     * @throws ServerResponseException
-     */
     public function truncate(Resource $resource): ElasticsearchResponse
     {
         $response = $this->measure(
@@ -218,11 +177,6 @@ class Client
         return $response;
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function search(Resource $resource, array $request): ElasticsearchResponse
     {
         return $this->measure(
@@ -237,11 +191,6 @@ class Client
         );
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function count(Resource $resource, array|Query $bodyQuery): ElasticsearchResponse
     {
         return $this->measure(

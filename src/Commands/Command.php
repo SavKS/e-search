@@ -96,15 +96,11 @@ abstract class Command extends BaseCommand
         if ($selectedResource) {
             return Arr::only($resources, [$selectedResource]);
         } else {
-            $choice = $this->choice(
-                'Which resources would you like to process?',
-                array_merge(
-                    [
-                        'Process all resources',
-                    ],
-                    \array_keys($resources)
-                )
-            );
+            $choice = $this->choice('Which resources would you like to process?', [
+                'Process all resources',
+
+                ...\array_keys($resources),
+            ]);
         }
 
         return $choice !== 'Process all resources' ?

@@ -5,11 +5,6 @@ namespace Savks\ESearch\Resources;
 use LogicException;
 use Savks\ESearch\Elasticsearch\Client;
 
-use Elastic\Elasticsearch\Exception\{
-    AuthenticationException,
-    ClientResponseException,
-    ServerResponseException
-};
 use Illuminate\Support\{
     Arr,
     Collection
@@ -30,11 +25,6 @@ class ResourceRunner
         $this->manager = new Client($connection);
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function purge(array|string $ids): void
     {
         $this->manager->bulkDelete(
@@ -43,11 +33,6 @@ class ResourceRunner
         );
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function purgeSync(array|string $ids): void
     {
         $this->manager->withConfig(
