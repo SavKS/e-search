@@ -1,5 +1,3 @@
-# Work in progress
-
 # Description
 
 ESearch
@@ -153,6 +151,14 @@ class ProductResource extends Resource
 
 Add your index resource into **e-search** config within "resources" section
 
+```php
+return [
     'resources' => [
         'product' => App\ESearch\Resources\ProductResource::class,
-    ]
+
+        // or
+
+        App\ESearch\Resources\ProductResource::class,
+    ],
+]
+```

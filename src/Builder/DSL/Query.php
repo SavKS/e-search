@@ -9,7 +9,7 @@ use Savks\ESearch\Exceptions\{
     InvalidOperation
 };
 
-class Query
+class Query implements Queryable
 {
     use HasDefaultConditions;
 
@@ -46,5 +46,10 @@ class Query
             $this->toArray(),
             $flags
         );
+    }
+
+    public function toQuery(): Query
+    {
+        return $this;
     }
 }
