@@ -2,12 +2,16 @@
 
 namespace Savks\ESearch\Builder\DSL\Traits;
 
+use BackedEnum;
 use Savks\ESearch\Builder\DSL\TermsCondition;
 
 trait HasTerms
 {
     use AsConditionHelper;
 
+    /**
+     * @param list<float|int|string|bool|BackedEnum> $values
+     */
     public function terms(string $field, array $values): static
     {
         return $this->addCondition(
