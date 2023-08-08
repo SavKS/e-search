@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Http\Resources\MissingValue;
 use Illuminate\Support\Arr;
 use Savks\ESearch\Resources\ResourceRunner;
-use Savks\ESearch\Updates\Updates;
 
 /**
  * @template TEntity
@@ -88,11 +87,6 @@ abstract class MutableResource extends Resource
     }
 
     abstract public function mapping(): array;
-
-    public function updates(Updates $updates): Updates
-    {
-        return $updates;
-    }
 
     public static function runner(string $connection = null): ResourceRunner
     {

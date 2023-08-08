@@ -2,9 +2,10 @@
 
 namespace Savks\ESearch\Providers;
 
-use Illuminate\Foundation\Application;
-use Illuminate\Support\ServiceProvider;
-
+use Illuminate\{
+    Foundation\Application,
+    Support\ServiceProvider
+};
 use Savks\ESearch\{
     Debug\PerformanceTracker,
     Elasticsearch\ConnectionsManager,
@@ -46,7 +47,6 @@ class ESearchServiceProvider extends ServiceProvider
             Commands\Fill::class,
             Commands\Truncate::class,
             Commands\RemoveRedundantIndices::class,
-            Commands\UpdatesRun::class,
         ]);
 
         $this->loadMigrationsFrom(

@@ -3,20 +3,18 @@
 namespace Savks\ESearch\Commands;
 
 use DB;
-use Savks\ESearch\Elasticsearch\Client;
-use Savks\ESearch\Models\ESearchUpdate;
-use Savks\ESearch\Support\MutableResource;
-use Savks\ESearch\Updates\Runner;
 use Str;
 use Symfony\Component\Console\Input\InputOption;
 
-use Illuminate\Support\{
-    Arr,
-    Collection
+use Illuminate\{
+    Support\Arr,
+    Support\Collection
 };
-use Savks\ESearch\Exceptions\{
-    CommandFailed,
-    CommandTerminated
+use Savks\ESearch\{
+    Elasticsearch\Client,
+    Exceptions\CommandFailed,
+    Exceptions\CommandTerminated,
+    Support\MutableResource
 };
 
 class Fill extends Command
@@ -93,8 +91,6 @@ class Fill extends Command
     ): void {
         $this->prepareForAliasCreating($indexOriginName, $client);
 
-        $updatesRunner = new Runner($resource, $client->connection);
-
         $aliasFullName = $client->connection->resolveIndexName(
             $indexOriginName
         );
@@ -119,16 +115,6 @@ class Fill extends Command
             ),
             true
         );
-
-        $updatesRunner->apply(function (ESearchUpdate $update) {
-            $this->warn(
-                sprintf(
-                    '  [*] Applied update for "%s": "%s"',
-                    $update->type,
-                    $update->name
-                )
-            );
-        });
     }
 
     protected function waitForIndexToBeReady(MutableResource $resource, Client $client): void
