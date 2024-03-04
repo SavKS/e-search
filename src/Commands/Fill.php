@@ -3,18 +3,22 @@
 namespace Savks\ESearch\Commands;
 
 use DB;
+use Savks\ESearch\Elasticsearch\Client;
 use Str;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputOption;
 
-use Illuminate\{
-    Support\Arr,
-    Support\Collection
+use Illuminate\Support\{
+    Arr,
+    Collection
 };
-use Savks\ESearch\{
-    Elasticsearch\Client,
-    Exceptions\CommandFailed,
-    Exceptions\CommandTerminated,
-    Support\MutableResource
+use Savks\ESearch\Exceptions\{
+    CommandFailed,
+    CommandTerminated
+};
+use Savks\ESearch\Support\{
+    MutableResource,
+    NativeMutableResource
 };
 
 class Fill extends Command
@@ -43,7 +47,7 @@ class Fill extends Command
 
         foreach ($resourceFQNs as $name => $resourceFQN) {
             $this->runtimeWrapper(function () use ($resourceFQN, $client, $name) {
-                /** @var MutableResource $resource */
+                /** @var NativeMutableResource|MutableResource $resource */
                 $resource = new $resourceFQN();
 
                 $datetimeSuffix = now()->format('Y_m_d_His') . '_' . strtolower(Str::random(6));
@@ -64,7 +68,10 @@ class Fill extends Command
 
                 $this->prepareIndex($resource, $indexOriginName, $datetimeSuffix, $client);
 
-                if (! $this->option('no-seed')) {
+                if (
+                    ! ($resource instanceof NativeMutableResource)
+                    && ! $this->option('no-seed')
+                ) {
                     $this->seed($resource, $client);
                 }
 
@@ -84,18 +91,16 @@ class Fill extends Command
     }
 
     protected function prepareIndex(
-        MutableResource $resource,
+        NativeMutableResource|MutableResource $resource,
         string $indexOriginName,
         string $datetimeSuffix,
         Client $client
     ): void {
         $this->prepareForAliasCreating($indexOriginName, $client);
 
-        $aliasFullName = $client->connection->resolveIndexName(
-            $indexOriginName
-        );
+        $aliasFullName = $client->connection->resolveIndexName($indexOriginName);
 
-        $indexFullName = $aliasFullName . '_' . $datetimeSuffix;
+        $indexFullName = "{$aliasFullName}_{$datetimeSuffix}";
 
         $client->connection->client()->indices()->create([
             'index' => $indexFullName,
@@ -117,7 +122,7 @@ class Fill extends Command
         );
     }
 
-    protected function waitForIndexToBeReady(MutableResource $resource, Client $client): void
+    protected function waitForIndexToBeReady(NativeMutableResource|MutableResource $resource, Client $client): void
     {
         $client->elasticsearchClient()->indices()->refresh([
             'index' => $client->connection->resolveIndexName($resource->indexName()),
@@ -141,7 +146,9 @@ class Fill extends Command
             );
 
             if (! $this->confirm('Delete it?') && ! $this->option('force')) {
-                throw new CommandTerminated('It is not possible to create an alias if you have an index with the same name.');
+                throw new CommandTerminated(
+                    'It is not possible to create an alias if you have an index with the same name.'
+                );
             }
 
             $client->connection->client()->indices()->delete(['index' => $aliasFullName]);
@@ -180,15 +187,16 @@ class Fill extends Command
             DB::enableQueryLog();
 
             $time = time();
-            $logsPath = \storage_path("app/e-search-query-logs/{$time}");
+            $logsPath = storage_path("app/e-search-query-logs/{$time}");
 
-            if (! mkdir($logsPath, 0755, true) && ! \is_dir($logsPath)) {
+            if (! mkdir($logsPath, 0755, true) && ! is_dir($logsPath)) {
                 throw new CommandFailed("Directory \"{$logsPath}\" was not created");
             }
         }
 
         $itemsLimit = (int)($this->option('items-limit') ?: 100);
 
+        /** @var ProgressBar|null $bar */
         $bar = null;
 
         $totalQueriesCount = 0;
@@ -216,18 +224,18 @@ class Fill extends Command
 
                 $client->bulkSave(
                     $resource,
-                    \array_merge(...$documents)
+                    array_merge(...$documents)
                 );
 
                 if ($withQueryLog) {
                     $queryLog = DB::getQueryLog();
 
-                    \file_put_contents(
+                    file_put_contents(
                         "{$logsPath}/{$totalIterations}.json",
-                        \json_encode($queryLog, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE)
+                        json_encode($queryLog, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
                     );
 
-                    $totalQueriesCount += \count($queryLog);
+                    $totalQueriesCount += count($queryLog);
                     $totalIterations++;
 
                     DB::flushQueryLog();
@@ -277,11 +285,13 @@ class Fill extends Command
         }
     }
 
-    protected function assignIndexAlias(MutableResource $resource, string $indexOriginName, Client $client): void
-    {
-        $aliasFullName = $client->connection->resolveIndexName(
-            $indexOriginName
-        );
+    protected function assignIndexAlias(
+        NativeMutableResource|MutableResource $resource,
+        string $indexOriginName,
+        Client $client
+    ): void {
+        $aliasFullName = $client->connection->resolveIndexName($indexOriginName);
+
         $indexFullName = $client->connection->resolveIndexName(
             $resource->indexName()
         );
@@ -292,7 +302,7 @@ class Fill extends Command
             $result = [];
 
             foreach ($aliasesInfo as $indexName => $data) {
-                if (\array_key_exists($aliasFullName, $data['aliases'])) {
+                if (array_key_exists($aliasFullName, $data['aliases'])) {
                     $result[] = [
                         'remove' => [
                             'index' => $indexName,
@@ -324,7 +334,7 @@ class Fill extends Command
 
         if ($redundantIndices) {
             $client->connection->client()->indices()->delete([
-                'index' => \implode(',', $redundantIndices),
+                'index' => implode(',', $redundantIndices),
             ]);
         }
 

@@ -88,7 +88,9 @@ trait HasLazyChunkBy
                     $mapResolver
                 );
 
-                $count = \count($result->hits());
+                $count = count(
+                    $result->hits()
+                );
 
                 if ($count === 0) {
                     break;
@@ -97,13 +99,15 @@ trait HasLazyChunkBy
                 $done = $count < $limit;
 
                 $lastValue = Arr::get(
-                    \last($result->hits()),
+                    last(
+                        $result->hits()
+                    ),
                     $field === '_id' ? $field : "_source.{$field}"
                 );
 
                 if ($lastValue === null) {
                     throw new ChunkFieldAbsentException(
-                        \sprintf(
+                        sprintf(
                             'Field "%s" is absent in the response, but is was expected to be present',
                             $field
                         )

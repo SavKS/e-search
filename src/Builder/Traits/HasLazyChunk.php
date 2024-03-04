@@ -50,12 +50,15 @@ trait HasLazyChunk
                 $result = $resultFactory->toResult($limit);
 
 
-                $count = \count($result->hits());
+                $count = count(
+                    $result->hits()
+                );
+
                 if ($count === 0) {
                     break;
                 }
 
-                $searchAfter = \last($result->hits())['sort'];
+                $searchAfter = last($result->hits())['sort'];
                 $done = $count < $limit;
 
                 yield $result;

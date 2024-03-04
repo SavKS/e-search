@@ -8,7 +8,6 @@ use LogicException;
 use RuntimeException;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Resources\ResourcesRepository;
-use Savks\ESearch\Support\MutableResource;
 use Symfony\Component\Console\Input\InputOption;
 
 use Illuminate\Console\{
@@ -18,6 +17,10 @@ use Illuminate\Console\{
 use Savks\ESearch\Exceptions\{
     CommandFailed,
     CommandTerminated
+};
+use Savks\ESearch\Support\{
+    MutableResource,
+    NativeMutableResource
 };
 
 abstract class Command extends BaseCommand
@@ -51,7 +54,7 @@ abstract class Command extends BaseCommand
         }
     }
 
-    protected function resolveIndexName(MutableResource $resource, Client $client): string
+    protected function resolveIndexName(NativeMutableResource|MutableResource $resource, Client $client): string
     {
         return $client->connection->resolveIndexName(
             $resource->indexName()
@@ -59,7 +62,7 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * @return array<string, class-string<MutableResource>>
+     * @return array<string, class-string<NativeMutableResource|MutableResource>>
      */
     protected function choiceResources(bool $isSingularChoice = false): array
     {
@@ -68,8 +71,11 @@ abstract class Command extends BaseCommand
         $selectedResource = $this->option('resource');
 
         if ($selectedResource) {
-            if (\class_exists($selectedResource)) {
-                if (! \is_subclass_of($selectedResource, MutableResource::class)) {
+            if (class_exists($selectedResource)) {
+                if (
+                    ! is_subclass_of($selectedResource, MutableResource::class)
+                    && ! is_subclass_of($selectedResource, NativeMutableResource::class)
+                ) {
                     throw new LogicException("The selected \"{$selectedResource}\" resource is not mutable.");
                 }
 
@@ -87,21 +93,19 @@ abstract class Command extends BaseCommand
 
         if ($this->option('all-resources')) {
             if ($isSingularChoice) {
-                throw new LogicException('The "--all-resources" option is not compatible with the "--index-name" option.');
+                throw new LogicException(
+                    'The "--all-resources" option is not compatible with the "--index-name" option.'
+                );
             }
 
             return $resources;
         }
 
-        if ($selectedResource) {
-            return Arr::only($resources, [$selectedResource]);
-        } else {
-            $choice = $this->choice('Which resources would you like to process?', [
-                'Process all resources',
+        $choice = $this->choice('Which resources would you like to process?', [
+            'Process all resources',
 
-                ...\array_keys($resources),
-            ]);
-        }
+            ...array_keys($resources),
+        ]);
 
         return $choice !== 'Process all resources' ?
             Arr::only($resources, [$choice]) :
@@ -116,7 +120,7 @@ abstract class Command extends BaseCommand
             return null;
         }
 
-        $criteria = \is_string($criteriaJSON) ? \json_decode($criteriaJSON, true) : false;
+        $criteria = is_string($criteriaJSON) ? json_decode($criteriaJSON, true) : false;
 
         if ($criteria === false) {
             throw new RuntimeException('Invalid criteria. The criteria must be valid JSON');

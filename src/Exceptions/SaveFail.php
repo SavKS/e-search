@@ -8,7 +8,7 @@ final class SaveFail extends OperationFail
 {
     public function __construct(protected readonly array $failInfo)
     {
-        $message = \sprintf(
+        $message = sprintf(
             'Failed to save into indices "%s" item with id "%s"',
             $this->failInfo['_index'],
             $this->failInfo['_id']

@@ -47,7 +47,7 @@ class ResourcesRepository
         $result = [];
 
         foreach ($this->items as $name => $resourceFQN) {
-            if (\is_subclass_of($resourceFQN, MutableResource::class)) {
+            if (is_subclass_of($resourceFQN, MutableResource::class)) {
                 $result[$name] = $resourceFQN;
             }
         }

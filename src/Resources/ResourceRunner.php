@@ -49,7 +49,7 @@ class ResourceRunner
 
         $this->mutableResource->prepareSeed(
             $ids,
-            $ids !== null ? \count($ids) : $limit,
+            $ids !== null ? count($ids) : $limit,
             function (Collection $items) use ($ids) {
                 if ($ids !== null && $items->count() > count($ids)) {
                     throw new LogicException('The number of items is greater than the specified number of ids');
@@ -63,7 +63,7 @@ class ResourceRunner
 
                 $this->manager->bulkSave(
                     $this->mutableResource,
-                    \array_merge(...$documents)
+                    array_merge(...$documents)
                 );
             },
             function (int $count) {

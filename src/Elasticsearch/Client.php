@@ -27,8 +27,8 @@ class Client
     public function __construct(string $connection = null)
     {
         $this->connection = $connection ?
-            \app(ConnectionsManager::class)->resolve($connection) :
-            \app(ConnectionsManager::class)->resolveDefault();
+            app(ConnectionsManager::class)->resolve($connection) :
+            app(ConnectionsManager::class)->resolveDefault();
 
         $this->requestConfig = new RequestConfig();
     }
@@ -228,7 +228,7 @@ class Client
     protected function measure(Resource $resource, Closure $callback): ElasticsearchResponse
     {
         $stopMeasure = $this->connection->isTrackPerformanceEnabled ?
-            \app(PerformanceTracker::class)->runMeasure($resource) :
+            app(PerformanceTracker::class)->runMeasure($resource) :
             null;
 
         $result = $callback();

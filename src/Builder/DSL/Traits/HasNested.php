@@ -17,7 +17,7 @@ trait HasNested
 
         $condition = new NestedCondition($path, $query);
 
-        if (\is_callable($predicate)) {
+        if (is_callable($predicate)) {
             $predicate($query);
         }
 

@@ -30,6 +30,22 @@ abstract class Resource
         return $this->indexName ?? static::name();
     }
 
+    public static function resolveRealIndexName(): string
+    {
+        return static::query()->client->connection->resolveIndexName(
+            (new static())->indexName()
+        );
+    }
+
+    public static function indexExists(): bool
+    {
+        $response = static::query()->client->connection->client()->indices()->exists([
+            'index' => static::resolveRealIndexName(),
+        ]);
+
+        return $response->asBool();
+    }
+
     public function useIndex(string $name): static
     {
         $this->indexName = $name;
