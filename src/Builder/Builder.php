@@ -56,6 +56,11 @@ class Builder
 
     protected bool $skipHits = false;
 
+    /**
+     * @var Closure(Query[] $queries):array|null
+     */
+    protected ?Closure $rootQueryResolver = null;
+
     public function __construct(
         public readonly Resource $resource,
         string $connection = null
@@ -256,8 +261,22 @@ class Builder
         return $this;
     }
 
+    /**
+     * @param Closure(Query[] $queries): array $resolver
+     */
+    public function setRootQueryResolver(Closure $resolver): static
+    {
+        $this->rootQueryResolver = $resolver;
+
+        return $this;
+    }
+
     public function toBodyQuery(): array
     {
+        if ($this->rootQueryResolver) {
+            return ($this->rootQueryResolver)($this->queries);
+        }
+
         $result = [];
 
         foreach ($this->queries as $query) {
