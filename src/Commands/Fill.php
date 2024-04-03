@@ -3,18 +3,18 @@
 namespace Savks\ESearch\Commands;
 
 use DB;
+use Savks\ESearch\Elasticsearch\Client;
+use Savks\ESearch\Support\MutableResource;
 use Str;
 use Symfony\Component\Console\Input\InputOption;
 
-use Illuminate\{
-    Support\Arr,
-    Support\Collection
+use Illuminate\Support\{
+    Arr,
+    Collection
 };
-use Savks\ESearch\{
-    Elasticsearch\Client,
-    Exceptions\CommandFailed,
-    Exceptions\CommandTerminated,
-    Support\MutableResource
+use Savks\ESearch\Exceptions\{
+    CommandFailed,
+    CommandTerminated
 };
 
 class Fill extends Command
@@ -141,7 +141,9 @@ class Fill extends Command
             );
 
             if (! $this->confirm('Delete it?') && ! $this->option('force')) {
-                throw new CommandTerminated('It is not possible to create an alias if you have an index with the same name.');
+                throw new CommandTerminated(
+                    'It is not possible to create an alias if you have an index with the same name.'
+                );
             }
 
             $client->connection->client()->indices()->delete(['index' => $aliasFullName]);
@@ -187,7 +189,7 @@ class Fill extends Command
             }
         }
 
-        $itemsLimit = (int)($this->option('items-limit') ?: 100);
+        $itemsLimit = (int)($this->option('items-limit') ?: $resource->seedLimit());
 
         $bar = null;
 
