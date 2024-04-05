@@ -31,9 +31,13 @@ abstract class MutableResource extends Resource
     /**
      * @param TEntity $entity
      */
-    public function prepareDocuments(mixed $entity): array
+    public function prepareDocuments(mixed $entity): ?array
     {
         $data = $this->buildDocument($entity);
+
+        if ($data === null) {
+            return null;
+        }
 
         if (Arr::isList($data)) {
             $result = [];
@@ -79,7 +83,7 @@ abstract class MutableResource extends Resource
     /**
      * @param TEntity $entity
      */
-    abstract public function buildDocument(mixed $entity): array;
+    abstract public function buildDocument(mixed $entity): ?array;
 
     public function index(): array
     {

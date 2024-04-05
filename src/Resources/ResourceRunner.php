@@ -58,13 +58,19 @@ class ResourceRunner
                 $documents = [];
 
                 foreach ($items as $item) {
-                    $documents[] = $this->mutableResource->prepareDocuments($item);
+                    $preparedDocuments = $this->mutableResource->prepareDocuments($item);
+
+                    if ($preparedDocuments !== null) {
+                        $documents[] = $preparedDocuments;
+                    }
                 }
 
-                $this->manager->bulkSave(
-                    $this->mutableResource,
-                    \array_merge(...$documents)
-                );
+                if ($documents) {
+                    $this->manager->bulkSave(
+                        $this->mutableResource,
+                        \array_merge(...$documents)
+                    );
+                }
             },
             function (int $count) {
                 //
