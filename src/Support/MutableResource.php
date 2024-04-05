@@ -12,6 +12,11 @@ use Savks\ESearch\Resources\ResourceRunner;
  */
 abstract class MutableResource extends Resource
 {
+    public function seedLimit(): int
+    {
+        return 100;
+    }
+
     public function prepareMapping(): array
     {
         $mapping = $this->mapping();

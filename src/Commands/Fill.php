@@ -190,7 +190,7 @@ class Fill extends Command
             }
         }
 
-        $itemsLimit = (int)($this->option('items-limit') ?: 100);
+        $itemsLimit = (int)($this->option('items-limit') ?: $resource->seedLimit());
 
         /** @var ProgressBar|null $bar */
         $bar = null;
