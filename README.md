@@ -33,14 +33,23 @@ use App\Models\Product;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
-use Savks\ESearch\Support\Resource;
 use Savks\ESearch\Support\Config;
+use Savks\ESearch\Support\MutableResource;
+use Savks\ESearch\Support\Resources\WithMapping;
+use Savks\ESearch\Support\Resources\AsDefaultEloquentResource;
 
-class ProductResource extends Resource
+class ProductResource extends MutableResource implements WithMapping
 {
+    use AsDefaultEloquentResource;
+
     public static function id(): string
     {
         return 'product';
+    }
+
+    protected function defaultQuery(): Relation|EloquentBuilder|QueryBuilder
+    {
+        return Product::with(['category']);
     }
 
     public static function configure(Config $config): void
@@ -149,6 +158,59 @@ class ProductResource extends Resource
 
 ### Step 2
 
+Create class for query builder from example below
+
+```php
+<?php
+
+namespace App\ESearch\Builders;
+
+use Savks\ESearch\Builder\Builder;
+use Savks\ESearch\Builder\DSL\Query;
+
+class ProductQueryBuilder extends Builder
+{
+    public function preciseSearch(string $searchString): static
+    {
+        $query = [
+            'bool' => [
+                'should' => []
+            ]
+        ];
+
+        $query['bool']['should'] = [
+            [
+                'bool' => [
+                    'must' => [
+                        'wildcard' => [
+                            'name_uk' => [
+                                'value' => mb_strtolower($searchString ?: '') . '*',
+                                'boost' => 15,
+                            ],
+                        ],
+                    ]
+                ]
+            ],
+        ];
+
+        $this->addQuery(function (Query $q) use ($query) {
+            $q->raw($query);
+        });
+
+        return $this;
+    }
+
+    public function fuzziesSearch(string $searchString): static
+    {
+        // Write another request here if necessary
+
+        return $this;
+    }
+}
+```
+
+### Step 3
+
 Add your index resource into **e-search** config within "resources" section
 
 ```php
@@ -161,4 +223,32 @@ return [
         App\ESearch\Resources\ProductResource::class,
     ],
 ]
+```
+
+
+Usage in controller
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\ESearch\Resources\ProductResource;
+use App\ESearch\Builders\ProductController;
+
+class ProductController extends Controller
+{
+    public function index(Request $request)
+    {
+        $builder = new ProductQueryBuilder(newProductResource);
+
+        $result = $builder->preciseSearch($request->product_name);
+
+        $product = $result->paginate(true);
+
+        // write some awesome code
+
+    }
+}
 ```
