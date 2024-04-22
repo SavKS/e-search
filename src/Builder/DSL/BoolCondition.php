@@ -20,6 +20,13 @@ class BoolCondition extends Condition
 
     protected ?float $boost = null;
 
+    public function setMinimumShouldMatch(?int $minimumShouldMatch): static
+    {
+        $this->minimumShouldMatch = $minimumShouldMatch;
+
+        return $this;
+    }
+
     public function isEmpty(): bool
     {
         $value = true;
@@ -68,7 +75,7 @@ class BoolCondition extends Condition
         if (\is_callable($predicate)) {
             $query = new Query();
 
-            \call_user_func($predicate, $query);
+            $predicate($query);
         } else {
             $query = $predicate;
         }
