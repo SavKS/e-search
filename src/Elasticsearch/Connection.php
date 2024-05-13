@@ -95,7 +95,7 @@ class Connection
         return $this->errorsHandler;
     }
 
-    public function resolveIndexSettings(string $indexName, string $settingName = null): mixed
+    public function resolveIndexSettings(string $indexName, ?string $settingName = null): mixed
     {
         $prefixedIndexName = $this->resolveIndexName($indexName);
 

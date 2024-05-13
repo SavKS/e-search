@@ -21,7 +21,7 @@ trait HasEachBy
         int $limit,
         Closure $callback,
         bool $withMapping = false,
-        Closure $mapResolver = null
+        ?Closure $mapResolver = null
     ): void {
         $this->chunkBy($field,
             $limit,

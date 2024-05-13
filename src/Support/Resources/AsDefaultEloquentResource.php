@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\{
 
 trait AsDefaultEloquentResource
 {
-    use SeedFromEloquent;
     use MapFromEloquent;
+    use SeedFromEloquent;
 
     abstract protected function defaultQuery(): Relation|EloquentBuilder|QueryBuilder;
 

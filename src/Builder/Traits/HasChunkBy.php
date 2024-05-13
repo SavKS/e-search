@@ -17,7 +17,7 @@ trait HasChunkBy
         int $limit,
         Closure $callback,
         bool $withMapping = false,
-        Closure $mapResolver = null
+        ?Closure $mapResolver = null
     ): void {
         foreach ($this->lazyChunkBy($field, $limit, $withMapping, $mapResolver) as $result) {
             if ($callback($result) === false) {

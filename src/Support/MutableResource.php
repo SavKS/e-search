@@ -97,7 +97,7 @@ abstract class MutableResource extends Resource
 
     abstract public function mapping(): array;
 
-    public static function runner(string $connection = null): ResourceRunner
+    public static function runner(?string $connection = null): ResourceRunner
     {
         return new ResourceRunner(
             new static(),

@@ -31,7 +31,7 @@ class ConnectionsManager
         return $this->connections[$name];
     }
 
-    protected function createConnection(string $name = null): Connection
+    protected function createConnection(?string $name = null): Connection
     {
         $name ??= \config('e-search.default_connection');
 

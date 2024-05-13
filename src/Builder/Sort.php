@@ -12,6 +12,7 @@ use InvalidArgumentException;
 final class Sort implements Arrayable
 {
     final public const ASC = 'asc';
+
     final public const DESC = 'desc';
 
     public array $options;

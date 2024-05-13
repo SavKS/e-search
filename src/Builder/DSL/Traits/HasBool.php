@@ -2,13 +2,14 @@
 
 namespace Savks\ESearch\Builder\DSL\Traits;
 
+use Closure;
 use Savks\ESearch\Builder\DSL\BoolCondition;
 
 trait HasBool
 {
     use AsConditionHelper;
 
-    public function bool(callable $callback = null): static|BoolCondition
+    public function bool(?Closure $callback = null): static|BoolCondition
     {
         $condition = new BoolCondition();
 

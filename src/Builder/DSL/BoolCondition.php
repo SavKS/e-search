@@ -2,6 +2,7 @@
 
 namespace Savks\ESearch\Builder\DSL;
 
+use Closure;
 use Savks\ESearch\Exceptions\EmptyQuery;
 
 class BoolCondition extends Condition
@@ -42,27 +43,27 @@ class BoolCondition extends Condition
         return $value;
     }
 
-    public function must(callable|Query $predicate = null): static|Query
+    public function must(Closure|Query|null $predicate = null): static|Query
     {
         return $this->addCondition('must', $predicate);
     }
 
-    public function mustNot(callable|Query $predicate = null): static|Query
+    public function mustNot(Closure|Query|null $predicate = null): static|Query
     {
         return $this->addCondition('must_not', $predicate);
     }
 
-    public function should(callable|Query $predicate = null): static|Query
+    public function should(Closure|Query|null $predicate = null): static|Query
     {
         return $this->addCondition('should', $predicate);
     }
 
-    public function filter(callable|Query $predicate = null): static|Query
+    public function filter(Closure|Query|null $predicate = null): static|Query
     {
         return $this->addCondition('filter', $predicate);
     }
 
-    protected function addCondition(string $condition, callable|Query $predicate = null): static|Query
+    protected function addCondition(string $condition, Closure|Query|null $predicate = null): static|Query
     {
         if ($predicate === null) {
             $query = new Query();

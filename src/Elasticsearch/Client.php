@@ -24,7 +24,7 @@ class Client
 
     protected RequestConfigContract $requestConfig;
 
-    public function __construct(string $connection = null)
+    public function __construct(?string $connection = null)
     {
         $this->connection = $connection ?
             \app(ConnectionsManager::class)->resolve($connection) :

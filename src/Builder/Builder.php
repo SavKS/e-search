@@ -58,7 +58,7 @@ class Builder
 
     public function __construct(
         public readonly Resource $resource,
-        string $connection = null
+        ?string $connection = null
     ) {
         $this->client = new Client($connection);
 
@@ -75,7 +75,7 @@ class Builder
     public function sortByWithScore(
         array|string|null $data,
         array $options = [],
-        array|string $fallback = null,
+        array|string|null $fallback = null,
         bool $visibleOnly = true
     ): static {
         $this->isSortWithScore = true;
@@ -86,7 +86,7 @@ class Builder
     public function sortBy(
         array|string|null $data,
         array $options = [],
-        array|string $fallback = null,
+        array|string|null $fallback = null,
         bool $visibleOnly = true
     ): static {
         $this->sortConfig['ids'] = [];
@@ -342,7 +342,7 @@ class Builder
         return \implode("\n", $result);
     }
 
-    public function get(bool $withMapping = false, Closure $mapResolver = null): Result
+    public function get(bool $withMapping = false, ?Closure $mapResolver = null): Result
     {
         $response = $this->exec();
 
@@ -359,7 +359,7 @@ class Builder
         return $factory->toResult($this->limit);
     }
 
-    public function all(bool $withMapping = false, Closure $mapResolver = null): Result
+    public function all(bool $withMapping = false, ?Closure $mapResolver = null): Result
     {
         $oldLimit = $this->limit;
 
@@ -376,9 +376,9 @@ class Builder
 
     public function paginate(
         bool $withMapping = false,
-        Closure $mapResolver = null,
+        ?Closure $mapResolver = null,
         string $pageName = 'page',
-        int $page = null
+        ?int $page = null
     ): Result {
         if ($page === null) {
             $page = $this->extractPageNumberFromRequest($pageName);
@@ -441,7 +441,7 @@ class Builder
         return $response['count'];
     }
 
-    protected function normalizeRawResult(ElasticsearchResponse $response, int $page = null): array
+    protected function normalizeRawResult(ElasticsearchResponse $response, ?int $page = null): array
     {
         $result = $response->asArray();
 

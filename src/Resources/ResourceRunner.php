@@ -20,7 +20,7 @@ class ResourceRunner
 
     public function __construct(
         protected readonly MutableResource $mutableResource,
-        string $connection = null
+        ?string $connection = null
     ) {
         $this->manager = new Client($connection);
     }
@@ -43,7 +43,7 @@ class ResourceRunner
         );
     }
 
-    public function push(array|string $ids = null, array $criteria = [], int $limit = 100): void
+    public function push(array|string|null $ids = null, array $criteria = [], int $limit = 100): void
     {
         $ids = $ids === null ? null : Arr::wrap($ids);
 
@@ -79,7 +79,7 @@ class ResourceRunner
         );
     }
 
-    public function pushSync(array|string $ids = null, array $criteria = [], int $limit = 100): void
+    public function pushSync(array|string|null $ids = null, array $criteria = [], int $limit = 100): void
     {
         $this->manager->withConfig(
             (new RequestConfig())->refresh(),

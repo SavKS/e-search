@@ -8,7 +8,7 @@ class SearchParams
 
     public string|bool $fuzzy = false;
 
-    public function wildcard(string $type = null): SearchParams
+    public function wildcard(?string $type = null): SearchParams
     {
         if ($type !== null && ! \in_array($type, ['right', 'left', 'both'], true)) {
             throw new \InvalidArgumentException('Wildcard option must have values: true, "right", "left", "both"');
@@ -29,7 +29,7 @@ class SearchParams
         return $this->wildcard('left');
     }
 
-    public function fuzzy(int $value = null): self
+    public function fuzzy(?int $value = null): self
     {
         $this->fuzzy = $value ?? true;
 

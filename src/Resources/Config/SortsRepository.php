@@ -44,7 +44,7 @@ class SortsRepository
     /**
      * @throws BindingResolutionException
      */
-    public function create(array|string $field, Closure $handler = null): static
+    public function create(array|string $field, ?Closure $handler = null): static
     {
         $factory = new SortFactory($field);
 
@@ -60,7 +60,7 @@ class SortsRepository
     /**
      * @throws BindingResolutionException
      */
-    public function createDesc(array|string $field, Closure $handler = null): static
+    public function createDesc(array|string $field, ?Closure $handler = null): static
     {
         return $this->create($field, function (SortFactory $factory) use ($handler) {
             $factory->desc();
@@ -74,7 +74,7 @@ class SortsRepository
     /**
      * @throws BindingResolutionException
      */
-    public function createBothOrders(array|string $field, Closure $handler = null): static
+    public function createBothOrders(array|string $field, ?Closure $handler = null): static
     {
         $factoryAsc = new SortFactory($field);
         $factoryDesc = new SortFactory($field);
@@ -117,7 +117,7 @@ class SortsRepository
 
         throw new RuntimeException(
             sprintf(
-                "Sort with id [%s] not found. Available: %s.",
+                'Sort with id [%s] not found. Available: %s.',
                 $id,
                 \implode(', ', $sortIds)
             )

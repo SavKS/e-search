@@ -73,7 +73,7 @@ class ResourcesRepository
         return new $resourceFQN();
     }
 
-    public function register(string $resourceFQN, string $name = null): ResourcesRepository
+    public function register(string $resourceFQN, ?string $name = null): ResourcesRepository
     {
         if (! is_subclass_of($resourceFQN, Resource::class)) {
             throw new LogicException("[{$resourceFQN}] must be subclass of [" . Resource::class . ']');

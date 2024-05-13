@@ -10,7 +10,7 @@ final class BulkSaveFail extends OperationFail
     public function __construct(protected readonly array $failedItems)
     {
         $message = \sprintf(
-            "Failed to save items into indices \"%s\". Items: %s",
+            'Failed to save items into indices "%s". Items: %s',
             collect($this->failedItems)->pluck('_index')->unique()->implode(', '),
             \collect($this->failedItems)->groupBy('_index')->map(
                 fn (Collection $items, string $index) => \sprintf(

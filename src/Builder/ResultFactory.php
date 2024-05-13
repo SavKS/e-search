@@ -30,7 +30,7 @@ class ResultFactory
     ) {
     }
 
-    public function withMapping(Closure $mapResolver = null): static
+    public function withMapping(?Closure $mapResolver = null): static
     {
         $this->withMapping = true;
         $this->mapResolver = $mapResolver;
@@ -38,7 +38,7 @@ class ResultFactory
         return $this;
     }
 
-    public function toResult(int $limit, int $page = null): Result
+    public function toResult(int $limit, ?int $page = null): Result
     {
         $items = $this->prepareItems();
 
