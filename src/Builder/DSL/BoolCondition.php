@@ -8,7 +8,7 @@ use Savks\ESearch\Exceptions\EmptyQuery;
 class BoolCondition extends Condition
 {
     /**
-     * @var Query[][]
+     * @var Queryable[][]
      */
     protected array $conditions = [
         'should' => [],
@@ -34,7 +34,7 @@ class BoolCondition extends Condition
 
         foreach ($this->conditions as $conditions) {
             foreach ($conditions as $condition) {
-                if (! $condition->isEmpty()) {
+                if (! $condition->toQuery()->isEmpty()) {
                     $value = false;
                 }
             }
@@ -43,27 +43,27 @@ class BoolCondition extends Condition
         return $value;
     }
 
-    public function must(Closure|Query|null $predicate = null): static|Query
+    public function must(Closure|Queryable|null $predicate = null): static|Query
     {
         return $this->addCondition('must', $predicate);
     }
 
-    public function mustNot(Closure|Query|null $predicate = null): static|Query
+    public function mustNot(Closure|Queryable|null $predicate = null): static|Query
     {
         return $this->addCondition('must_not', $predicate);
     }
 
-    public function should(Closure|Query|null $predicate = null): static|Query
+    public function should(Closure|Queryable|null $predicate = null): static|Query
     {
         return $this->addCondition('should', $predicate);
     }
 
-    public function filter(Closure|Query|null $predicate = null): static|Query
+    public function filter(Closure|Queryable|null $predicate = null): static|Query
     {
         return $this->addCondition('filter', $predicate);
     }
 
-    protected function addCondition(string $condition, Closure|Query|null $predicate = null): static|Query
+    protected function addCondition(string $condition, Closure|Queryable|null $predicate = null): static|Query
     {
         if ($predicate === null) {
             $query = new Query();
@@ -92,7 +92,7 @@ class BoolCondition extends Condition
 
         foreach (\array_keys($this->conditions) as $conditionVariant) {
             foreach ($this->conditions[$conditionVariant] as $condition) {
-                $result[$conditionVariant][] = $condition->toArray();
+                $result[$conditionVariant][] = $condition->toQuery()->toArray();
             }
         }
 
