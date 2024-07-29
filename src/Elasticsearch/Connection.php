@@ -67,10 +67,10 @@ class Connection
         if (! isset($this->client)) {
             $client = ClientBuilder::create()->setHosts($this->config['connection']['hosts']);
 
-            if (! empty($this->config['connection']['authentication']['enabled'])) {
+            if (! empty($this->config['connection']['auth']['user'])) {
                 $client->setBasicAuthentication(
-                    $this->config['connection']['authentication']['user'],
-                    $this->config['connection']['authentication']['password']
+                    $this->config['connection']['auth']['user'],
+                    $this->config['connection']['auth']['password']
                 );
             }
 

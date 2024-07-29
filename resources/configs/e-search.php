@@ -105,10 +105,9 @@ return [
                 | Authentication handling
                 |------------------------------------------------------------------
                  */
-                'authentication' => [
-                    'enabled' => env('E_SEARCH_AUTH', false),
-                    'user' => env('E_SEARCH_USER'),
-                    'password' => env('E_SEARCH_PASSWORD'),
+                'auth' => [
+                    'user' => env('E_SEARCH_USER', null),
+                    'password' => env('E_SEARCH_PASSWORD', ''),
                 ],
             ],
         ],
