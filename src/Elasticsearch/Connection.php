@@ -67,6 +67,13 @@ class Connection
         if (! isset($this->client)) {
             $client = ClientBuilder::create()->setHosts($this->config['connection']['hosts']);
 
+            if (! empty($this->config['connection']['auth']['user'])) {
+                $client->setBasicAuthentication(
+                    $this->config['connection']['auth']['user'],
+                    $this->config['connection']['auth']['password']
+                );
+            }
+
             if (isset($this->config['connection']['retries'])) {
                 $client->setRetries($this->config['connection']['retries']);
             }
