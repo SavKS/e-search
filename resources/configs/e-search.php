@@ -99,6 +99,17 @@ return [
                     'write_to_log' => env('E_SEARCH_ERRORS_HANDLING_WRITE_TO_LOG', true),
                     'use_sentry' => env('E_SEARCH_ERRORS_HANDLING_USE_SENTRY', false),
                 ],
+
+                /*
+                |------------------------------------------------------------------
+                | Authentication handling
+                |------------------------------------------------------------------
+                 */
+                'authentication' => [
+                    'enabled' => env('E_SEARCH_AUTH', false),
+                    'user' => env('E_SEARCH_USER'),
+                    'password' => env('E_SEARCH_PASSWORD'),
+                ],
             ],
         ],
     ],
