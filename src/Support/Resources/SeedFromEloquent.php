@@ -7,7 +7,8 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 use Illuminate\Database\Eloquent\{
     Relations\Relation,
-    Builder as EloquentBuilder
+    Builder as EloquentBuilder,
+    Collection as EloquentCollection
 };
 
 trait SeedFromEloquent
@@ -18,6 +19,11 @@ trait SeedFromEloquent
     }
 
     abstract protected function defaultSeedQuery(array $criteria): Relation|EloquentBuilder|QueryBuilder;
+
+    public function prepareSeedChunk(EloquentCollection $items): iterable
+    {
+        return $items;
+    }
 
     public function prepareSeed(
         ?array $ids,
@@ -41,11 +47,19 @@ trait SeedFromEloquent
         if ($defaultChunkField) {
             $query->chunkById(
                 $limit,
-                $callback,
+                function (EloquentCollection $items) use ($callback) {
+                    $callback(
+                        $this->prepareSeedChunk($items)
+                    );
+                },
                 $this->defaultChunkField()
             );
         } else {
-            $query->chunk($limit, $callback);
+            $query->chunk($limit, function (EloquentCollection $items) use ($callback) {
+                $callback(
+                    $this->prepareSeedChunk($items)
+                );
+            });
         }
     }
 }

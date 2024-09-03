@@ -2,13 +2,10 @@
 
 namespace Savks\ESearch\Resources;
 
+use Illuminate\Support\Arr;
 use LogicException;
 use Savks\ESearch\Elasticsearch\Client;
 
-use Illuminate\Support\{
-    Arr,
-    Collection
-};
 use Savks\ESearch\Support\{
     MutableResource,
     RequestConfig
@@ -50,8 +47,8 @@ class ResourceRunner
         $this->mutableResource->prepareSeed(
             $ids,
             $ids !== null ? \count($ids) : $limit,
-            function (Collection $items) use ($ids) {
-                if ($ids !== null && $items->count() > count($ids)) {
+            function (iterable $items) use ($ids) {
+                if ($ids !== null && iterator_count($items) > count($ids)) {
                     throw new LogicException('The number of items is greater than the specified number of ids');
                 }
 

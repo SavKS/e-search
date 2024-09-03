@@ -3,16 +3,13 @@
 namespace Savks\ESearch\Commands;
 
 use DB;
+use Illuminate\Support\Arr;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Support\MutableResource;
 use Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputOption;
 
-use Illuminate\Support\{
-    Arr,
-    Collection
-};
 use Savks\ESearch\Exceptions\{
     CommandFailed,
     CommandTerminated
@@ -201,7 +198,7 @@ class Fill extends Command
         $resource->prepareSeed(
             null,
             $itemsLimit,
-            function (Collection $items) use (
+            function (iterable $items) use (
                 $client,
                 &$bar,
                 $resource,
