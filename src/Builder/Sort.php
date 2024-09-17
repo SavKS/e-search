@@ -59,6 +59,11 @@ final class Sort implements Arrayable
             $result = [];
 
             foreach ($this->field as $name => $data) {
+                if (is_int($name) && is_string($data)) {
+                    $name = $data;
+                    $data = [];
+                }
+
                 $result[$name] = array_merge(
                     $options,
                     [
