@@ -27,6 +27,12 @@ trait HasLazyChunkBy
     ): Result {
         $dslQuery = $this->toRequest();
 
+        if (! empty($dslQuery['_source'])) {
+            if (! in_array($field, $dslQuery['_source'], true)) {
+                $dslQuery['_source'][] = $field;
+            }
+        }
+
         $dslQuery['size'] = $limit;
 
         if ($value !== null) {

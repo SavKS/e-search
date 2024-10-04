@@ -73,6 +73,9 @@ class ResourcesRepository
         return new $resourceFQN();
     }
 
+    /**
+     * @param class-string<Resource> $resourceFQN
+     */
     public function register(string $resourceFQN, ?string $name = null): ResourcesRepository
     {
         if (! is_subclass_of($resourceFQN, Resource::class)) {
