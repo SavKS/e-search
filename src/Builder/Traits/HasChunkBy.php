@@ -3,7 +3,11 @@
 namespace Savks\ESearch\Builder\Traits;
 
 use Closure;
-use Savks\ESearch\Builder\Builder;
+
+use Savks\ESearch\Builder\{
+    Builder,
+    Result
+};
 
 /**
  * @mixin Builder
@@ -12,6 +16,9 @@ trait HasChunkBy
 {
     use HasLazyChunkBy;
 
+    /**
+     * @param Closure(Result $result):(void|false) $callback
+     */
     public function chunkBy(
         string $field,
         int $limit,

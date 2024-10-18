@@ -83,7 +83,7 @@ class ResultFactory
                 $this->raw,
                 $this->mapResolver !== null ?
                     function (...$args) use (&$isResolverCalled) {
-                        \call_user_func_array($this->mapResolver, $args);
+                        ($this->mapResolver)(...$args);
 
                         $isResolverCalled = true;
                     } :
