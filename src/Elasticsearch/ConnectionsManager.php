@@ -33,13 +33,13 @@ class ConnectionsManager
 
     protected function createConnection(?string $name = null): Connection
     {
-        $name ??= \config('e-search.default_connection');
+        $name ??= config('e-search.default_connection');
 
         if (! $name) {
             throw new InvalidConfiguration('Default connection name is not defined');
         }
 
-        $config = \config("e-search.connections.{$name}");
+        $config = config("e-search.connections.{$name}");
 
         if (! $config) {
             throw new InvalidConfiguration("Connection with name \"{$name}\" not defined");

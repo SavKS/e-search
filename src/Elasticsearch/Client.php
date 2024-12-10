@@ -3,20 +3,15 @@
 namespace Savks\ESearch\Elasticsearch;
 
 use Closure;
+use Elastic\Elasticsearch\Client as ElasticsearchClient;
+use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Http\Promise\Promise;
 use Savks\ESearch\Builder\DSL\Query;
 use Savks\ESearch\Debug\PerformanceTracker;
+use Savks\ESearch\Support\RequestConfig;
+use Savks\ESearch\Support\RequestConfigContract;
+use Savks\ESearch\Support\Resource;
 use stdClass;
-
-use Elastic\Elasticsearch\{
-    Response\Elasticsearch as ElasticsearchResponse,
-    Client as ElasticsearchClient
-};
-use Savks\ESearch\Support\{
-    RequestConfig,
-    RequestConfigContract,
-    Resource
-};
 
 class Client
 {
@@ -27,8 +22,8 @@ class Client
     public function __construct(?string $connection = null)
     {
         $this->connection = $connection ?
-            \app(ConnectionsManager::class)->resolve($connection) :
-            \app(ConnectionsManager::class)->resolveDefault();
+            app(ConnectionsManager::class)->resolve($connection) :
+            app(ConnectionsManager::class)->resolveDefault();
 
         $this->requestConfig = new RequestConfig();
     }
@@ -228,7 +223,7 @@ class Client
     protected function measure(Resource $resource, Closure $callback): ElasticsearchResponse
     {
         $stopMeasure = $this->connection->isTrackPerformanceEnabled ?
-            \app(PerformanceTracker::class)->runMeasure($resource) :
+            app(PerformanceTracker::class)->runMeasure($resource) :
             null;
 
         $result = $callback();

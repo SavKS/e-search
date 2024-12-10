@@ -119,7 +119,7 @@ class SortsRepository
             sprintf(
                 'Sort with id [%s] not found. Available: %s.',
                 $id,
-                \implode(', ', $sortIds)
+                implode(', ', $sortIds)
             )
         );
     }

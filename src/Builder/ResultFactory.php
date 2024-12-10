@@ -4,18 +4,13 @@ namespace Savks\ESearch\Builder;
 
 use Closure;
 use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use LogicException;
 use RuntimeException;
-
-use Illuminate\Pagination\{
-    LengthAwarePaginator,
-    Paginator
-};
-use Savks\ESearch\Support\{
-    Resources\WithMapping,
-    Resource
-};
+use Savks\ESearch\Support\Resource;
+use Savks\ESearch\Support\Resources\WithMapping;
 
 class ResultFactory
 {
@@ -100,7 +95,7 @@ class ResultFactory
         }
 
         if (! ($items instanceof Collection)) {
-            $items = \collect($items);
+            $items = collect($items);
         }
 
         return $items;

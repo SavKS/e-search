@@ -4,11 +4,8 @@ namespace Savks\ESearch\Resources;
 
 use LogicException;
 use RuntimeException;
-
-use Savks\ESearch\Support\{
-    MutableResource,
-    Resource
-};
+use Savks\ESearch\Support\MutableResource;
+use Savks\ESearch\Support\Resource;
 
 class ResourcesRepository
 {
@@ -47,7 +44,7 @@ class ResourcesRepository
         $result = [];
 
         foreach ($this->items as $name => $resourceFQN) {
-            if (\is_subclass_of($resourceFQN, MutableResource::class)) {
+            if (is_subclass_of($resourceFQN, MutableResource::class)) {
                 $result[$name] = $resourceFQN;
             }
         }

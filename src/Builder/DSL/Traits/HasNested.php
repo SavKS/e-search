@@ -2,10 +2,8 @@
 
 namespace Savks\ESearch\Builder\DSL\Traits;
 
-use Savks\ESearch\Builder\DSL\{
-    NestedCondition,
-    Query
-};
+use Savks\ESearch\Builder\DSL\NestedCondition;
+use Savks\ESearch\Builder\DSL\Query;
 
 trait HasNested
 {
@@ -17,7 +15,7 @@ trait HasNested
 
         $condition = new NestedCondition($path, $query);
 
-        if (\is_callable($predicate)) {
+        if (is_callable($predicate)) {
             $predicate($query);
         }
 

@@ -2,18 +2,12 @@
 
 namespace Savks\ESearch\Elasticsearch;
 
-use Elastic\Elasticsearch\{
-    Client,
-    ClientBuilder
-};
-use Illuminate\Support\{
-    Arr,
-    Str
-};
-use Monolog\{
-    Handler\StreamHandler,
-    Logger
-};
+use Elastic\Elasticsearch\Client;
+use Elastic\Elasticsearch\ClientBuilder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 class Connection
 {

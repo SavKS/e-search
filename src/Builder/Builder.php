@@ -7,13 +7,10 @@ use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use RuntimeException;
+use Savks\ESearch\Builder\DSL\Query;
+use Savks\ESearch\Builder\DSL\Queryable;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Support\Resource;
-
-use Savks\ESearch\Builder\DSL\{
-    Query,
-    Queryable
-};
 
 class Builder
 {
@@ -228,7 +225,7 @@ class Builder
 
     public function lastAllowedPage(): float
     {
-        return \floor($this->resolveMaxItemsLimit() / $this->limit);
+        return floor($this->resolveMaxItemsLimit() / $this->limit);
     }
 
     public function addQuery(Query|Queryable|callable $predicate): static
@@ -311,7 +308,7 @@ class Builder
             }
 
             $request['body']['sort'] = $this->isSortWithScore ?
-                \array_merge($scoreSort, $this->sortConfig['payload']) :
+                array_merge($scoreSort, $this->sortConfig['payload']) :
                 $this->sortConfig['payload'];
         }
 
@@ -332,14 +329,14 @@ class Builder
             'body' => $body,
         ] = $this->toRequest();
 
-        $result[] = \json_encode([
+        $result[] = json_encode([
             'from' => $from,
             'size' => $size,
 
             ...$body,
-        ], \JSON_UNESCAPED_UNICODE | ($pretty ? \JSON_PRETTY_PRINT : 0) | $flags);
+        ], JSON_UNESCAPED_UNICODE | ($pretty ? JSON_PRETTY_PRINT : 0) | $flags);
 
-        return \implode("\n", $result);
+        return implode("\n", $result);
     }
 
     public function get(bool $withMapping = false, ?Closure $mapResolver = null): Result
@@ -411,9 +408,9 @@ class Builder
 
     protected function extractPageNumberFromRequest(string $pageName): int
     {
-        $reqPage = \request()->get($pageName);
+        $reqPage = request()->get($pageName);
 
-        if (! \is_numeric($reqPage)) {
+        if (! is_numeric($reqPage)) {
             return 1;
         }
 
@@ -445,7 +442,7 @@ class Builder
     {
         $result = $response->asArray();
 
-        $result['hits']['total']['value'] = \min(
+        $result['hits']['total']['value'] = min(
             $result['hits']['total']['value'],
             $this->maxAllowedItems()
         );

@@ -3,11 +3,9 @@
 namespace Savks\ESearch\Support\Builder;
 
 use Closure;
-
-use Savks\ESearch\Builder\DSL\{
-    Query,
-    Queryable
-};
+use Savks\ESearch\Builder\DSL\Query;
+use Savks\ESearch\Builder\DSL\Queryable;
+use stdClass;
 
 class FullTextQuery implements Queryable
 {
@@ -22,10 +20,10 @@ class FullTextQuery implements Queryable
 
     public function changeSearchParams(SearchParams|Closure $predicate): static
     {
-        $params = \call_user_func($predicate, $this->params);
+        $params = $predicate($this->params);
 
         if ($predicate instanceof Closure) {
-            $this->params = \call_user_func($predicate, $this->params);
+            $this->params = $predicate($this->params);
         } elseif ($params instanceof SearchParams) {
             $this->params = $params;
         }
@@ -35,7 +33,7 @@ class FullTextQuery implements Queryable
 
     protected function checkTerm(mixed $term): bool
     {
-        return \is_string($term) && \json_encode($term) !== false;
+        return is_string($term) && json_encode($term) !== false;
     }
 
     public function term(): ?string
@@ -56,7 +54,7 @@ class FullTextQuery implements Queryable
         }
 
         return (new Query())->raw([
-            'match_none' => new \stdClass(),
+            'match_none' => new stdClass(),
         ]);
     }
 
@@ -85,15 +83,15 @@ class FullTextQuery implements Queryable
 
         $simpleWords = [];
 
-        foreach (\explode(' ', $term) as $word) {
-            if (empty(\trim($word))) {
+        foreach (explode(' ', $term) as $word) {
+            if (empty(trim($word))) {
                 continue;
             }
 
             $simpleWords[] = $word;
         }
 
-        return \implode(' ', $simpleWords);
+        return implode(' ', $simpleWords);
     }
 
     protected function prepareSearchQuery(): string
@@ -107,7 +105,7 @@ class FullTextQuery implements Queryable
         $wildcardWords = [];
         $fuzzyWords = [];
 
-        foreach (\explode(' ', $term) as $word) {
+        foreach (explode(' ', $term) as $word) {
             if ($this->params->wildcard === true || $this->params->wildcard === 'right') {
                 $wildcardWords[] = $word . '*';
             } elseif ($this->params->wildcard === 'left') {
@@ -118,7 +116,7 @@ class FullTextQuery implements Queryable
 
             if ($this->params->fuzzy === true) {
                 $fuzzyWords[] = $word . '~';
-            } elseif (\is_int($this->params->fuzzy)) {
+            } elseif (is_int($this->params->fuzzy)) {
                 $fuzzyWords[] = $word . '~' . $this->params->fuzzy;
             }
         }
@@ -130,11 +128,11 @@ class FullTextQuery implements Queryable
         $query = "(\"{$term}\") OR ({$term})";
 
         if ($wildcardWords) {
-            $query .= ' OR (' . \implode(' ', $wildcardWords) . ')';
+            $query .= ' OR (' . implode(' ', $wildcardWords) . ')';
         }
 
         if ($fuzzyWords) {
-            $query .= ' OR (' . \implode(' ', $fuzzyWords) . ')';
+            $query .= ' OR (' . implode(' ', $fuzzyWords) . ')';
         }
 
         return $query;

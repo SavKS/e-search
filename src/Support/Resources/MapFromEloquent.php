@@ -3,16 +3,11 @@
 namespace Savks\ESearch\Support\Resources;
 
 use Closure;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-
-use Illuminate\Database\Eloquent\{
-    Relations\Relation,
-    Builder as EloquentBuilder
-};
-use Illuminate\Support\{
-    Arr,
-    Collection
-};
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 
 trait MapFromEloquent
 {

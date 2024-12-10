@@ -55,7 +55,7 @@ final class Sort implements Arrayable
 
     public function toArray(array $options = []): array
     {
-        if (\is_array($this->field)) {
+        if (is_array($this->field)) {
             $result = [];
 
             foreach ($this->field as $name => $data) {

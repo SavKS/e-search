@@ -3,22 +3,17 @@
 namespace Savks\ESearch\Commands;
 
 use Closure;
+use Illuminate\Console\Command as BaseCommand;
+use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Support\Arr;
 use LogicException;
 use RuntimeException;
 use Savks\ESearch\Elasticsearch\Client;
+use Savks\ESearch\Exceptions\CommandFailed;
+use Savks\ESearch\Exceptions\CommandTerminated;
 use Savks\ESearch\Resources\ResourcesRepository;
 use Savks\ESearch\Support\MutableResource;
 use Symfony\Component\Console\Input\InputOption;
-
-use Illuminate\Console\{
-    Command as BaseCommand,
-    ConfirmableTrait
-};
-use Savks\ESearch\Exceptions\{
-    CommandFailed,
-    CommandTerminated
-};
 
 abstract class Command extends BaseCommand
 {
@@ -68,8 +63,8 @@ abstract class Command extends BaseCommand
         $selectedResource = $this->option('resource');
 
         if ($selectedResource) {
-            if (\class_exists($selectedResource)) {
-                if (! \is_subclass_of($selectedResource, MutableResource::class)) {
+            if (class_exists($selectedResource)) {
+                if (! is_subclass_of($selectedResource, MutableResource::class)) {
                     throw new LogicException("The selected \"{$selectedResource}\" resource is not mutable.");
                 }
 
@@ -93,19 +88,15 @@ abstract class Command extends BaseCommand
             return $resources;
         }
 
-        if ($selectedResource) {
-            return Arr::only($resources, [$selectedResource]);
-        } else {
-            $choice = $this->choice('Which resources would you like to process?', [
-                'Process all resources',
+        $choice = $this->choice('Which resources would you like to process?', [
+            'Process all resources',
 
-                ...\array_keys($resources),
-            ]);
-        }
+            ...array_keys($resources),
+        ]);
 
-        return $choice !== 'Process all resources' ?
-            Arr::only($resources, [$choice]) :
-            $resources;
+        return $choice !== 'Process all resources'
+            ? Arr::only($resources, [$choice])
+            : $resources;
     }
 
     protected function resolveCriteria(): ?array
@@ -116,7 +107,7 @@ abstract class Command extends BaseCommand
             return null;
         }
 
-        $criteria = \is_string($criteriaJSON) ? \json_decode($criteriaJSON, true) : false;
+        $criteria = is_string($criteriaJSON) ? json_decode($criteriaJSON, true) : false;
 
         if ($criteria === false) {
             throw new RuntimeException('Invalid criteria. The criteria must be valid JSON');

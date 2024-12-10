@@ -2,6 +2,8 @@
 
 namespace Savks\ESearch\Support\Builder;
 
+use InvalidArgumentException;
+
 class SearchParams
 {
     public string|bool $wildcard = false;
@@ -10,8 +12,8 @@ class SearchParams
 
     public function wildcard(?string $type = null): SearchParams
     {
-        if ($type !== null && ! \in_array($type, ['right', 'left', 'both'], true)) {
-            throw new \InvalidArgumentException('Wildcard option must have values: true, "right", "left", "both"');
+        if ($type !== null && ! in_array($type, ['right', 'left', 'both'], true)) {
+            throw new InvalidArgumentException('Wildcard option must have values: true, "right", "left", "both"');
         }
 
         $this->wildcard = $type ?? true;

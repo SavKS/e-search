@@ -3,11 +3,8 @@
 namespace Savks\ESearch\Builder\Traits;
 
 use Closure;
-
-use Savks\ESearch\Builder\{
-    Builder,
-    Result
-};
+use Savks\ESearch\Builder\Builder;
+use Savks\ESearch\Builder\Result;
 
 /**
  * @mixin Builder

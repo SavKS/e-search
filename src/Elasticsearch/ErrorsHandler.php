@@ -5,13 +5,10 @@ namespace Savks\ESearch\Elasticsearch;
 use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Illuminate\Support\Arr;
 use Monolog\Logger;
-
-use Savks\ESearch\Exceptions\{
-    BaseException,
-    BulkSaveFail,
-    OperationFail,
-    SaveFail
-};
+use Savks\ESearch\Exceptions\BaseException;
+use Savks\ESearch\Exceptions\BulkSaveFail;
+use Savks\ESearch\Exceptions\OperationFail;
+use Savks\ESearch\Exceptions\SaveFail;
 
 class ErrorsHandler
 {

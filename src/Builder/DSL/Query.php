@@ -3,11 +3,8 @@
 namespace Savks\ESearch\Builder\DSL;
 
 use Savks\ESearch\Builder\DSL\Traits\HasDefaultConditions;
-
-use Savks\ESearch\Exceptions\{
-    EmptyQuery,
-    InvalidOperation
-};
+use Savks\ESearch\Exceptions\EmptyQuery;
+use Savks\ESearch\Exceptions\InvalidOperation;
 
 class Query implements Queryable
 {
@@ -42,7 +39,7 @@ class Query implements Queryable
 
     public function toJson(int $flags = 0): string
     {
-        return \json_encode(
+        return json_encode(
             $this->toArray(),
             $flags
         );

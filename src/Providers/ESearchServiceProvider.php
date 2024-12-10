@@ -2,16 +2,12 @@
 
 namespace Savks\ESearch\Providers;
 
-use Illuminate\{
-    Foundation\Application,
-    Support\ServiceProvider
-};
-use Savks\ESearch\{
-    Debug\PerformanceTracker,
-    Elasticsearch\ConnectionsManager,
-    Resources\ResourcesRepository,
-    Commands
-};
+use Illuminate\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
+use Savks\ESearch\Commands;
+use Savks\ESearch\Debug\PerformanceTracker;
+use Savks\ESearch\Elasticsearch\ConnectionsManager;
+use Savks\ESearch\Resources\ResourcesRepository;
 
 class ESearchServiceProvider extends ServiceProvider
 {
@@ -50,18 +46,18 @@ class ESearchServiceProvider extends ServiceProvider
         ]);
 
         $this->loadMigrationsFrom(
-            \dirname(__DIR__, 2) . '/database/migrations'
+            dirname(__DIR__, 2) . '/database/migrations'
         );
     }
 
     protected function publishConfigs(): void
     {
-        $source = \dirname(__DIR__, 2) . '/resources/configs/e-search.php';
+        $source = dirname(__DIR__, 2) . '/resources/configs/e-search.php';
 
         $this->mergeConfigFrom($source, 'e-search');
 
         $this->publishes([
-            $source => \config_path('e-search.php'),
+            $source => config_path('e-search.php'),
         ], 'configs');
     }
 }

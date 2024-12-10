@@ -4,12 +4,9 @@ namespace Savks\ESearch\Builder\Traits;
 
 use Closure;
 use Illuminate\Support\LazyCollection;
-
-use Savks\ESearch\Builder\{
-    Builder,
-    Result,
-    ResultFactory
-};
+use Savks\ESearch\Builder\Builder;
+use Savks\ESearch\Builder\Result;
+use Savks\ESearch\Builder\ResultFactory;
 
 /**
  * @mixin Builder
@@ -50,12 +47,12 @@ trait HasLazyChunk
                 $result = $resultFactory->toResult($limit);
 
 
-                $count = \count($result->hits());
+                $count = count($result->hits());
                 if ($count === 0) {
                     break;
                 }
 
-                $searchAfter = \last($result->hits())['sort'];
+                $searchAfter = last($result->hits())['sort'];
                 $done = $count < $limit;
 
                 yield $result;

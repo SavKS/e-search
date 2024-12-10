@@ -34,7 +34,7 @@ class RemoveRedundantIndices extends Command
         foreach ($resourceFQNs as $name => $resourceFQN) {
             $this->runtimeWrapper(function () use ($client, $name) {
                 /** @var MutableResource $resource */
-                $resource = \app(ResourcesRepository::class)->make($name);
+                $resource = app(ResourcesRepository::class)->make($name);
 
                 if ($this->option('index-name')) {
                     $resource->useIndex(
@@ -61,10 +61,10 @@ class RemoveRedundantIndices extends Command
             $result = [];
 
             $currentIndexName = null;
-            $pattern = '/^' . \preg_quote($aliasName) . '_(\d{4}_\d{2}_\d{2}_\d{6})_\w{6}$/';
+            $pattern = '/^' . preg_quote($aliasName) . '_(\d{4}_\d{2}_\d{2}_\d{6})_\w{6}$/';
 
             foreach ($aliasesInfo as $indexName => $data) {
-                $isMatched = \preg_match($pattern, $indexName, $matches) > 0;
+                $isMatched = preg_match($pattern, $indexName, $matches) > 0;
 
                 if (! $isMatched) {
                     continue;
@@ -74,18 +74,18 @@ class RemoveRedundantIndices extends Command
                     $result[] = $indexName;
                 } else {
                     if ($currentIndexName) {
-                        \preg_match($pattern, $currentIndexName, $currentMatches);
+                        preg_match($pattern, $currentIndexName, $currentMatches);
 
-                        $currentDatetime = (int)\str_replace(
+                        $currentDatetime = (int)str_replace(
                             '_',
                             '',
-                            \preg_replace('/_\w{6}$/', '', $currentMatches[1])
+                            preg_replace('/_\w{6}$/', '', $currentMatches[1])
                         );
 
-                        $datetime = (int)\str_replace(
+                        $datetime = (int)str_replace(
                             '_',
                             '',
-                            \preg_replace('/_\w{6}$/', '', $matches[1])
+                            preg_replace('/_\w{6}$/', '', $matches[1])
                         );
 
                         if ($datetime > $currentDatetime) {
@@ -129,7 +129,7 @@ class RemoveRedundantIndices extends Command
         }
 
         $client->connection->client()->indices()->delete([
-            'index' => \implode(',', $redundantIndices),
+            'index' => implode(',', $redundantIndices),
         ]);
     }
 }

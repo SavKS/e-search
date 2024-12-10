@@ -5,15 +5,12 @@ namespace Savks\ESearch\Commands;
 use DB;
 use Illuminate\Support\Arr;
 use Savks\ESearch\Elasticsearch\Client;
+use Savks\ESearch\Exceptions\CommandFailed;
+use Savks\ESearch\Exceptions\CommandTerminated;
 use Savks\ESearch\Support\MutableResource;
 use Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputOption;
-
-use Savks\ESearch\Exceptions\{
-    CommandFailed,
-    CommandTerminated
-};
 
 class Fill extends Command
 {
@@ -180,9 +177,9 @@ class Fill extends Command
             DB::enableQueryLog();
 
             $time = time();
-            $logsPath = \storage_path("app/e-search-query-logs/{$time}");
+            $logsPath = storage_path("app/e-search-query-logs/{$time}");
 
-            if (! mkdir($logsPath, 0755, true) && ! \is_dir($logsPath)) {
+            if (! mkdir($logsPath, 0755, true) && ! is_dir($logsPath)) {
                 throw new CommandFailed("Directory \"{$logsPath}\" was not created");
             }
         }
@@ -222,19 +219,19 @@ class Fill extends Command
                 if ($documents) {
                     $client->bulkSave(
                         $resource,
-                        \array_merge(...$documents)
+                        array_merge(...$documents)
                     );
                 }
 
                 if ($withQueryLog) {
                     $queryLog = DB::getQueryLog();
 
-                    \file_put_contents(
+                    file_put_contents(
                         "{$logsPath}/{$totalIterations}.json",
-                        \json_encode($queryLog, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE)
+                        json_encode($queryLog, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
                     );
 
-                    $totalQueriesCount += \count($queryLog);
+                    $totalQueriesCount += count($queryLog);
                     $totalIterations++;
 
                     DB::flushQueryLog();
@@ -299,7 +296,7 @@ class Fill extends Command
             $result = [];
 
             foreach ($aliasesInfo as $indexName => $data) {
-                if (\array_key_exists($aliasFullName, $data['aliases'])) {
+                if (array_key_exists($aliasFullName, $data['aliases'])) {
                     $result[] = [
                         'remove' => [
                             'index' => $indexName,
@@ -331,7 +328,7 @@ class Fill extends Command
 
         if ($redundantIndices) {
             $client->connection->client()->indices()->delete([
-                'index' => \implode(',', $redundantIndices),
+                'index' => implode(',', $redundantIndices),
             ]);
         }
 

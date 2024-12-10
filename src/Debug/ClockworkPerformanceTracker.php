@@ -13,13 +13,13 @@ class ClockworkPerformanceTracker implements PerformanceTracker
         $queryUniqId = Str::random();
         $event = "Elasticsearch: Resource \"{$resource::name()}\"";
 
-        if (\function_exists('clock')) {
-            \clock()->event($event, ['name' => $queryUniqId])->begin();
+        if (function_exists('clock')) {
+            clock()->event($event, ['name' => $queryUniqId])->begin();
         }
 
         return function () use ($event, $queryUniqId) {
-            if (\function_exists('clock')) {
-                \clock()->event($event, ['name' => $queryUniqId])->end();
+            if (function_exists('clock')) {
+                clock()->event($event, ['name' => $queryUniqId])->end();
             }
         };
     }

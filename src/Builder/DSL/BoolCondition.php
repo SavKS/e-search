@@ -73,7 +73,7 @@ class BoolCondition extends Condition
             return $query;
         }
 
-        if (\is_callable($predicate)) {
+        if (is_callable($predicate)) {
             $query = new Query();
 
             $predicate($query);
@@ -90,7 +90,7 @@ class BoolCondition extends Condition
     {
         $result = [];
 
-        foreach (\array_keys($this->conditions) as $conditionVariant) {
+        foreach (array_keys($this->conditions) as $conditionVariant) {
             foreach ($this->conditions[$conditionVariant] as $condition) {
                 $result[$conditionVariant][] = $condition->toQuery()->toArray();
             }

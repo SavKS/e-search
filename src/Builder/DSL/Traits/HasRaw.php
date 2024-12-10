@@ -2,10 +2,8 @@
 
 namespace Savks\ESearch\Builder\DSL\Traits;
 
-use Savks\ESearch\Builder\DSL\{
-    Queryable,
-    RawCondition
-};
+use Savks\ESearch\Builder\DSL\Queryable;
+use Savks\ESearch\Builder\DSL\RawCondition;
 
 trait HasRaw
 {

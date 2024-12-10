@@ -3,11 +3,8 @@
 namespace Savks\ESearch\Support;
 
 use Closure;
-
-use Savks\ESearch\Resources\Config\{
-    ScopesRepository,
-    SortsRepository
-};
+use Savks\ESearch\Resources\Config\ScopesRepository;
+use Savks\ESearch\Resources\Config\SortsRepository;
 
 class Config
 {

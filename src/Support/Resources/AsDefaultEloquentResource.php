@@ -2,12 +2,9 @@
 
 namespace Savks\ESearch\Support\Resources;
 
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-
-use Illuminate\Database\Eloquent\{
-    Relations\Relation,
-    Builder as EloquentBuilder
-};
 
 trait AsDefaultEloquentResource
 {
