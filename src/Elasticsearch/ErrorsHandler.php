@@ -24,24 +24,10 @@ class ErrorsHandler
         protected readonly array $config,
         protected readonly Logger $logger
     ) {
-
-        $this->isErrorsHandlingDebugEnabled = (bool)Arr::get(
-            $config,
-            'e-search.connection.errors_handling.debug_enabled'
-        );
-        $this->isErrorsHandlingWriteToLog = (bool)Arr::get(
-            $config,
-            'e-search.connection.errors_handling.write_to_log'
-        );
-        $this->isErrorsHandlingUseSentry = (bool)Arr::get(
-            $config,
-            'e-search.connection.errors_handling.use_sentry'
-        );
-
-        $this->isLoggingEnabled = (bool)Arr::get(
-            $config,
-            'e-search.connection.logging.enabled'
-        );
+        $this->isErrorsHandlingDebugEnabled = (bool)Arr::get($config, 'connection.errors_handling.debug_enabled');
+        $this->isErrorsHandlingWriteToLog = (bool)Arr::get($config, 'connection.errors_handling.write_to_log');
+        $this->isErrorsHandlingUseSentry = (bool)Arr::get($config, 'connection.errors_handling.use_sentry');
+        $this->isLoggingEnabled = (bool)Arr::get($config, 'connection.logging.enabled');
     }
 
     public function processResponse(RequestTypes $requestType, ElasticsearchResponse $response): void
@@ -77,7 +63,8 @@ class ErrorsHandler
             throw $exception;
         }
 
-        if ($this->isErrorsHandlingUseSentry
+        if (
+            $this->isErrorsHandlingUseSentry
             && app()->bound('sentry')
         ) {
             app('sentry')->captureException($exception);
