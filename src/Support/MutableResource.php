@@ -87,14 +87,22 @@ abstract class MutableResource extends Resource
 
     /**
      * @param TEntity $entity
+     *
+     * @return array<string, mixed>|null
      */
     abstract public function buildDocument(mixed $entity): ?array;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function index(): array
     {
         return [];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     abstract public function mapping(): array;
 
     public static function runner(?string $connection = null): ResourceRunner

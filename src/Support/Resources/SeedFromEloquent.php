@@ -15,6 +15,9 @@ trait SeedFromEloquent
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $criteria
+     */
     abstract protected function defaultSeedQuery(array $criteria): Relation|EloquentBuilder|QueryBuilder;
 
     public function prepareSeedChunk(EloquentCollection $items): iterable

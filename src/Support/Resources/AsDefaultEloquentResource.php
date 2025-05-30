@@ -13,6 +13,9 @@ trait AsDefaultEloquentResource
 
     abstract protected function defaultQuery(): Relation|EloquentBuilder|QueryBuilder;
 
+    /**
+     * @param array<string, mixed> $criteria
+     */
     protected function defaultSeedQuery(array $criteria): Relation|EloquentBuilder|QueryBuilder
     {
         return $this->defaultQuery();

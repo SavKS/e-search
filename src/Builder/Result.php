@@ -7,8 +7,16 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Savks\ESearch\Support\Resource;
 
+/**
+ * @template TValue
+ * @template Paginated as bool
+ */
 class Result
 {
+    /**
+     * @param Collection<int, TValue> $items
+     * @param (Paginated is true ? LengthAwarePaginator<int, TValue> : null) $paginator
+     */
     public function __construct(
         public readonly array $data,
         public readonly Collection $items,
