@@ -10,7 +10,7 @@ use Savks\ESearch\Support\Resource;
 class ResourcesRepository
 {
     /**
-     * @var array<string, class-string<Resource>|class-string<MutableResource>>
+     * @var array<string, class-string<Resource>|class-string<MutableResource<mixed>>>
      */
     protected array $items = [];
 
@@ -37,7 +37,7 @@ class ResourcesRepository
     }
 
     /**
-     * @return array<string, class-string<MutableResource>>
+     * @return array<string, class-string<MutableResource<mixed>>>
      */
     public function mutableOnly(): array
     {
@@ -75,10 +75,6 @@ class ResourcesRepository
      */
     public function register(string $resourceFQN, ?string $name = null): ResourcesRepository
     {
-        if (! is_subclass_of($resourceFQN, Resource::class)) {
-            throw new LogicException("[{$resourceFQN}] must be subclass of [" . Resource::class . ']');
-        }
-
         $this->items[$name ?? $resourceFQN::name()] = $resourceFQN;
 
         return $this;

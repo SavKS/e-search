@@ -2,13 +2,13 @@
 
 namespace Savks\ESearch\Commands;
 
-use DB;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Exceptions\CommandFailed;
 use Savks\ESearch\Exceptions\CommandTerminated;
 use Savks\ESearch\Support\MutableResource;
-use Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -38,7 +38,6 @@ class Fill extends Command
 
         foreach ($resourceFQNs as $name => $resourceFQN) {
             $this->runtimeWrapper(function () use ($resourceFQN, $client, $name) {
-                /** @var MutableResource $resource */
                 $resource = new $resourceFQN();
 
                 $datetimeSuffix = now()->format('Y_m_d_His') . '_' . strtolower(Str::random(6));
@@ -46,6 +45,19 @@ class Fill extends Command
                 $indexOriginName = $this->option('index-name') ?? $resource->indexName();
 
                 $resource->useIndex("{$indexOriginName}_{$datetimeSuffix}");
+
+                if ($this->needSkip($resourceFQN, $indexOriginName)) {
+                    $this->getOutput()->write(
+                        sprintf(
+                            '[<fg=yellow>%s</>] Resource <fg=green>%s</> skipped.',
+                            now()->toDateTimeString(),
+                            $name
+                        ),
+                        true
+                    );
+
+                    return;
+                }
 
                 $this->getOutput()->write(
                     sprintf(
@@ -78,6 +90,9 @@ class Fill extends Command
         }
     }
 
+    /**
+     * @param MutableResource<mixed> $resource
+     */
     protected function prepareIndex(
         MutableResource $resource,
         string $indexOriginName,
@@ -112,6 +127,9 @@ class Fill extends Command
         );
     }
 
+    /**
+     * @param MutableResource<mixed> $resource
+     */
     protected function waitForIndexToBeReady(MutableResource $resource, Client $client): void
     {
         $client->elasticsearchClient()->indices()->refresh([
@@ -121,9 +139,8 @@ class Fill extends Command
 
     protected function prepareForAliasCreating(string $indexOriginName, Client $client): void
     {
-        $aliasFullName = $client->connection->resolveIndexName(
-            $indexOriginName
-        );
+        $aliasFullName = $client->connection->resolveIndexName($indexOriginName);
+
         $aliasesInfo = $client->elasticsearchClient()->indices()->getAlias()->asArray();
 
         if (isset($aliasesInfo[$aliasFullName])) {
@@ -154,6 +171,9 @@ class Fill extends Command
         }
     }
 
+    /**
+     * @param MutableResource<mixed> $resource
+     */
     protected function seed(MutableResource $resource, Client $client): void
     {
         $indexFullName = $client->connection->resolveIndexName(
@@ -281,6 +301,9 @@ class Fill extends Command
         }
     }
 
+    /**
+     * @param MutableResource<mixed> $resource
+     */
     protected function assignIndexAlias(MutableResource $resource, string $indexOriginName, Client $client): void
     {
         $aliasFullName = $client->connection->resolveIndexName(
@@ -343,6 +366,26 @@ class Fill extends Command
         );
     }
 
+    /**
+     * @param class-string<MutableResource<mixed>> $resourceFQN
+     */
+    protected function needSkip(string $resourceFQN, string $indexOriginName): bool
+    {
+        $runner = $resourceFQN::runner(
+            $this->option('connection')
+        );
+
+        $runner->resource->useIndex($indexOriginName);
+
+        $indexExists = $runner->indexExists();
+
+        return $this->option('ignore-existing') && $indexExists
+            || $this->option('ignore-not-existing') && ! $indexExists;
+    }
+
+    /**
+     * @return array<mixed>
+     */
     protected function getOptions(): array
     {
         return [
@@ -351,6 +394,8 @@ class Fill extends Command
             ['items-limit', null, InputOption::VALUE_OPTIONAL, 'Limit items per iteration.'],
             ['with-query-log', null, InputOption::VALUE_NONE, 'Run with query log.'],
             ['no-seed', null, InputOption::VALUE_NONE, 'Without data seeding.'],
+            ['ignore-existing', null, InputOption::VALUE_NONE, 'Ignore existing indices.'],
+            ['ignore-not-existing', null, InputOption::VALUE_NONE, 'Ignore not existing indices.'],
         ];
     }
 }

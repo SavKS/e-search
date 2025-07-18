@@ -46,6 +46,9 @@ abstract class Command extends BaseCommand
         }
     }
 
+    /**
+     * @param MutableResource<mixed> $resource
+     */
     protected function resolveIndexName(MutableResource $resource, Client $client): string
     {
         return $client->connection->resolveIndexName(
@@ -54,7 +57,7 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * @return array<string, class-string<MutableResource>>
+     * @return array<string, class-string<MutableResource<mixed>>>
      */
     protected function choiceResources(bool $isSingularChoice = false): array
     {
@@ -73,6 +76,7 @@ abstract class Command extends BaseCommand
                 ];
             }
 
+            /** @var array<string, class-string<MutableResource<mixed>>> */
             return Arr::only($resources, [$selectedResource]);
         }
 
@@ -123,6 +127,9 @@ abstract class Command extends BaseCommand
         );
     }
 
+    /**
+     * @return array<mixed>
+     */
     protected function getOptions(): array
     {
         return [

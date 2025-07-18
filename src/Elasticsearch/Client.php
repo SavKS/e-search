@@ -4,6 +4,7 @@ namespace Savks\ESearch\Elasticsearch;
 
 use Closure;
 use Elastic\Elasticsearch\Client as ElasticsearchClient;
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Http\Promise\Promise;
 use Savks\ESearch\Builder\DSL\Query;
@@ -31,6 +32,25 @@ class Client
     public function elasticsearchClient(): ElasticsearchClient
     {
         return $this->connection->client();
+    }
+
+    public function indexExists(Resource $resource): bool
+    {
+        $indexName = $this->connection->resolveIndexName(
+            $resource->indexName()
+        );
+
+        try {
+            $this->elasticsearchClient()->indices()->getAlias(['name' => $indexName]);
+
+            return true;
+        } catch (ClientResponseException $e) {
+            if ($e->getCode() === 404) {
+                return false;
+            }
+
+            throw $e;
+        }
     }
 
     public function save(Resource $resource, array $document): ElasticsearchResponse|Promise

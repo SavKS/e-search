@@ -8,28 +8,45 @@ use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Support\RequestConfig;
 
+/**
+ * @template TResource of MutableResource
+ */
 class ResourceRunner
 {
-    protected Client $manager;
+    protected Client $client;
 
+    /**
+     * @param TResource $resource
+     */
     public function __construct(
-        protected readonly MutableResource $mutableResource,
+        public readonly MutableResource $resource,
         ?string $connection = null
     ) {
-        $this->manager = new Client($connection);
+        $this->client = new Client($connection);
     }
 
+    public function indexExists(): bool
+    {
+        return $this->client->indexExists($this->resource);
+    }
+
+    /**
+     * @param array<string|int>|string $ids
+     */
     public function purge(array|string $ids): void
     {
-        $this->manager->bulkDelete(
-            $this->mutableResource,
+        $this->client->bulkDelete(
+            $this->resource,
             Arr::wrap($ids)
         );
     }
 
+    /**
+     * @param array<string|int>|string $ids
+     */
     public function purgeSync(array|string $ids): void
     {
-        $this->manager->withConfig(
+        $this->client->withConfig(
             (new RequestConfig())->refresh(),
             function () use ($ids) {
                 $this->purge($ids);
@@ -37,11 +54,15 @@ class ResourceRunner
         );
     }
 
+    /**
+     * @param array<string|int>|string|null $ids
+     * @param array<string, mixed> $criteria
+     */
     public function push(array|string|null $ids = null, array $criteria = [], int $limit = 100): void
     {
         $ids = $ids === null ? null : Arr::wrap($ids);
 
-        $this->mutableResource->prepareSeed(
+        $this->resource->prepareSeed(
             $ids,
             $ids !== null ? count($ids) : $limit,
             function (iterable $items) use ($ids) {
@@ -52,7 +73,7 @@ class ResourceRunner
                 $documents = [];
 
                 foreach ($items as $item) {
-                    $preparedDocuments = $this->mutableResource->prepareDocuments($item);
+                    $preparedDocuments = $this->resource->prepareDocuments($item);
 
                     if ($preparedDocuments !== null) {
                         $documents[] = $preparedDocuments;
@@ -60,8 +81,8 @@ class ResourceRunner
                 }
 
                 if ($documents) {
-                    $this->manager->bulkSave(
-                        $this->mutableResource,
+                    $this->client->bulkSave(
+                        $this->resource,
                         array_merge(...$documents)
                     );
                 }
@@ -73,9 +94,13 @@ class ResourceRunner
         );
     }
 
+    /**
+     * @param array<string|int>|string|null $ids
+     * @param array<string, mixed> $criteria
+     */
     public function pushSync(array|string|null $ids = null, array $criteria = [], int $limit = 100): void
     {
-        $this->manager->withConfig(
+        $this->client->withConfig(
             (new RequestConfig())->refresh(),
             function () use ($ids, $criteria, $limit) {
                 $this->push($ids, $criteria, $limit);
