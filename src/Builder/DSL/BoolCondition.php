@@ -8,7 +8,12 @@ use Savks\ESearch\Exceptions\EmptyQuery;
 class BoolCondition extends Condition
 {
     /**
-     * @var Queryable[][]
+     * @var array{
+     *     should: Queryable[],
+     *     must: Queryable[],
+     *     must_not: Queryable[],
+     *     filter: Queryable[],
+     * }
      */
     protected array $conditions = [
         'should' => [],
@@ -43,26 +48,62 @@ class BoolCondition extends Condition
         return $value;
     }
 
+    /**
+     * @template TPredicate of Closure|Queryable|null
+     *
+     * @param TPredicate $predicate
+     *
+     * @return (TPredicate is null ? Query : $this)
+     */
     public function must(Closure|Queryable|null $predicate = null): static|Query
     {
         return $this->addCondition('must', $predicate);
     }
 
+    /**
+     * @template TPredicate of Closure|Queryable|null
+     *
+     * @param TPredicate $predicate
+     *
+     * @return (TPredicate is null ? Query : $this)
+     */
     public function mustNot(Closure|Queryable|null $predicate = null): static|Query
     {
         return $this->addCondition('must_not', $predicate);
     }
 
+    /**
+     * @template TPredicate of Closure|Queryable|null
+     *
+     * @param TPredicate $predicate
+     *
+     * @return (TPredicate is null ? Query : $this)
+     */
     public function should(Closure|Queryable|null $predicate = null): static|Query
     {
         return $this->addCondition('should', $predicate);
     }
 
+    /**
+     * @template TPredicate of Closure|Queryable|null
+     *
+     * @param TPredicate $predicate
+     *
+     * @return (TPredicate is null ? Query : $this)
+     */
     public function filter(Closure|Queryable|null $predicate = null): static|Query
     {
         return $this->addCondition('filter', $predicate);
     }
 
+    /**
+     * @template TPredicate of Closure|Queryable|null
+     *
+     * @param 'should'|'must'|'must_not'|'filter' $condition
+     * @param TPredicate $predicate
+     *
+     * @return (TPredicate is null ? Query : $this)
+     */
     protected function addCondition(string $condition, Closure|Queryable|null $predicate = null): static|Query
     {
         if ($predicate === null) {
@@ -86,6 +127,9 @@ class BoolCondition extends Condition
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         $result = [];

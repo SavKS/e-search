@@ -7,7 +7,7 @@ use BackedEnum;
 class TermsCondition extends Condition
 {
     /**
-     * @param list<float|int|string|bool|BackedEnum> $values
+     * @param array<float|int|string|bool|BackedEnum> $values
      */
     public function __construct(
         protected readonly string $field,
@@ -20,6 +20,11 @@ class TermsCondition extends Condition
         return false;
     }
 
+    /**
+     * @return array{
+     *     terms: array<string, array<float|int|string|bool>>
+     * }
+     */
     public function toArray(): array
     {
         $values = [];

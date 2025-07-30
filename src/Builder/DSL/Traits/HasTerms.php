@@ -10,7 +10,7 @@ trait HasTerms
     use AsConditionHelper;
 
     /**
-     * @param list<float|int|string|bool|BackedEnum> $values
+     * @param array<float|int|string|bool|BackedEnum> $values
      */
     public function terms(string $field, array $values): static
     {
