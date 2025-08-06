@@ -134,10 +134,7 @@ class Builder
 
         switch (true) {
             case is_int($key) && is_string($value):
-                $sorts[] = $this->resource->config()->sorts->findByIdOrFail(
-                    $value,
-                    $visibleOnly
-                )->toArray();
+                $sorts[] = $this->resource->config()->sorts->findByIdOrFail($value, $visibleOnly)->toArray();
 
                 $this->sortConfig['ids'][] = $value;
                 break;
