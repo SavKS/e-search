@@ -19,11 +19,11 @@ class RemoveRedundantIndices extends Command
             return;
         }
 
-        $resourceFQNs = $this->choiceResources(
+        $resourceClasses = $this->choiceResources(
             (bool)$this->option('index-name')
         );
 
-        if (! $resourceFQNs) {
+        if (! $resourceClasses) {
             $this->warn('No mutable resources found...');
 
             return;
@@ -31,9 +31,9 @@ class RemoveRedundantIndices extends Command
 
         $client = $this->makeClient();
 
-        foreach ($resourceFQNs as $name => $resourceFQN) {
+        foreach ($resourceClasses as $name => $resourceClass) {
             $this->runtimeWrapper(function () use ($client, $name) {
-                /** @var MutableResource $resource */
+                /** @var MutableResource<mixed> $resource */
                 $resource = app(ResourcesRepository::class)->make($name);
 
                 if ($this->option('index-name')) {

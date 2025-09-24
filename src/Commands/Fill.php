@@ -24,11 +24,11 @@ class Fill extends Command
             return;
         }
 
-        $resourceFQNs = $this->choiceResources(
+        $resourceClasses = $this->choiceResources(
             (bool)$this->option('index-name')
         );
 
-        if (! $resourceFQNs) {
+        if (! $resourceClasses) {
             $this->warn('No mutable resources found...');
 
             return;
@@ -36,9 +36,9 @@ class Fill extends Command
 
         $client = $this->makeClient();
 
-        foreach ($resourceFQNs as $name => $resourceFQN) {
-            $this->runtimeWrapper(function () use ($resourceFQN, $client, $name) {
-                $resource = new $resourceFQN();
+        foreach ($resourceClasses as $name => $resourceClass) {
+            $this->runtimeWrapper(function () use ($resourceClass, $client, $name) {
+                $resource = new $resourceClass();
 
                 $datetimeSuffix = now()->format('Y_m_d_His') . '_' . strtolower(Str::random(6));
 
@@ -46,7 +46,7 @@ class Fill extends Command
 
                 $resource->useIndex("{$indexOriginName}_{$datetimeSuffix}");
 
-                if ($this->needSkip($resourceFQN, $indexOriginName)) {
+                if ($this->needSkip($resourceClass, $indexOriginName)) {
                     $this->getOutput()->write(
                         sprintf(
                             '[<fg=yellow>%s</>] Resource <fg=green>%s</> skipped.',
@@ -367,11 +367,11 @@ class Fill extends Command
     }
 
     /**
-     * @param class-string<MutableResource<mixed>> $resourceFQN
+     * @param class-string<MutableResource<mixed>> $resource
      */
-    protected function needSkip(string $resourceFQN, string $indexOriginName): bool
+    protected function needSkip(string $resource, string $indexOriginName): bool
     {
-        $runner = $resourceFQN::runner(
+        $runner = $resource::runner(
             $this->option('connection')
         );
 

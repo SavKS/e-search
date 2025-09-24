@@ -16,9 +16,9 @@ class Truncate extends Command
             return;
         }
 
-        $resourceFQNs = $this->choiceResources();
+        $resourceClasses = $this->choiceResources();
 
-        if (! $resourceFQNs) {
+        if (! $resourceClasses) {
             $this->warn('No mutable resources found...');
 
             return;
@@ -26,10 +26,10 @@ class Truncate extends Command
 
         $client = $this->makeClient();
 
-        foreach ($resourceFQNs as $name => $resourceFQN) {
-            $this->runtimeWrapper(function () use ($resourceFQN, $name, $client) {
-                /** @var MutableResource $resource */
-                $resource = new $resourceFQN();
+        foreach ($resourceClasses as $name => $resourceClass) {
+            $this->runtimeWrapper(function () use ($resourceClass, $name, $client) {
+                /** @var MutableResource<mixed> $resource */
+                $resource = new $resourceClass();
 
                 if ($this->option('index-name')) {
                     $resource->useIndex(

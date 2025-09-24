@@ -19,12 +19,12 @@ class ResourcesRepository
      */
     public function __construct(array $config)
     {
-        foreach ($config as $name => $resourceFQN) {
-            if (! is_subclass_of($resourceFQN, Resource::class)) {
-                throw new LogicException("[{$resourceFQN}] must be subclass of [" . Resource::class . ']');
+        foreach ($config as $name => $resource) {
+            if (! is_subclass_of($resource, Resource::class)) {
+                throw new LogicException("[{$resource}] must be subclass of [" . Resource::class . ']');
             }
 
-            $this->items[is_int($name) ? $resourceFQN::name() : $name] = $resourceFQN;
+            $this->items[is_int($name) ? $resource::name() : $name] = $resource;
         }
     }
 
@@ -43,9 +43,9 @@ class ResourcesRepository
     {
         $result = [];
 
-        foreach ($this->items as $name => $resourceFQN) {
-            if (is_subclass_of($resourceFQN, MutableResource::class)) {
-                $result[$name] = $resourceFQN;
+        foreach ($this->items as $name => $resource) {
+            if (is_subclass_of($resource, MutableResource::class)) {
+                $result[$name] = $resource;
             }
         }
 
@@ -53,29 +53,29 @@ class ResourcesRepository
     }
 
     /**
-     * @param class-string<Resource> $nameOrFQN
+     * @param class-string<Resource> $nameOrClass
      */
-    public function make(string $nameOrFQN): Resource
+    public function make(string $nameOrClass): Resource
     {
-        $resourceFQNs = $this->all();
+        $resourceClasses = $this->all();
 
-        if (isset($resourceFQNs[$nameOrFQN])) {
-            $resourceFQN = $resourceFQNs[$nameOrFQN];
-        } elseif ($index = array_search($nameOrFQN, $resourceFQNs, true)) {
-            $resourceFQN = $resourceFQNs[$index];
+        if (isset($resourceClasses[$nameOrClass])) {
+            $resourceClass = $resourceClasses[$nameOrClass];
+        } elseif ($index = array_search($nameOrClass, $resourceClasses, true)) {
+            $resourceClass = $resourceClasses[$index];
         } else {
-            throw new RuntimeException("Resource [{$nameOrFQN}] not found");
+            throw new RuntimeException("Resource [{$nameOrClass}] not found");
         }
 
-        return new $resourceFQN();
+        return new $resourceClass();
     }
 
     /**
-     * @param class-string<Resource> $resourceFQN
+     * @param class-string<Resource> $resource
      */
-    public function register(string $resourceFQN, ?string $name = null): ResourcesRepository
+    public function register(string $resource, ?string $name = null): ResourcesRepository
     {
-        $this->items[$name ?? $resourceFQN::name()] = $resourceFQN;
+        $this->items[$name ?? $resource::name()] = $resource;
 
         return $this;
     }

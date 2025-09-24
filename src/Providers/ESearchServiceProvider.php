@@ -29,9 +29,9 @@ class ESearchServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(PerformanceTracker::class, function (Application $app) {
-            $trackerFQN = $app['config']->get('e-search.performance_tracker');
+            $trackerClass = $app['config']->get('e-search.performance_tracker');
 
-            return new $trackerFQN();
+            return new $trackerClass();
         });
     }
 

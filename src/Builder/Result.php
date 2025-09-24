@@ -9,13 +9,13 @@ use Savks\ESearch\Support\Resource;
 
 /**
  * @template TValue
- * @template Paginated as bool
+ * @template TPaginated as bool
  */
 class Result
 {
     /**
      * @param Collection<int, TValue> $items
-     * @param (Paginated is true ? LengthAwarePaginator<int, TValue> : null) $paginator
+     * @param (TPaginated is true ? LengthAwarePaginator<int, TValue> : null) $paginator
      */
     public function __construct(
         public readonly array $data,
