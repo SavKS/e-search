@@ -4,6 +4,7 @@ namespace Savks\ESearch\Resources;
 
 use Illuminate\Support\Arr;
 use LogicException;
+use Savks\ESearch\Builder\DSL\Query;
 use Savks\ESearch\Elasticsearch\Client;
 use Savks\ESearch\Support\MutableResource;
 use Savks\ESearch\Support\RequestConfig;
@@ -39,6 +40,14 @@ class ResourceRunner
             $this->resource,
             Arr::wrap($ids)
         );
+    }
+
+    /**
+     * @param Query|array<string, mixed> $query
+     */
+    public function deleteByQuery(Query|array $query): void
+    {
+        $this->client->deleteByQuery($this->resource, $query);
     }
 
     /**

@@ -77,6 +77,13 @@ abstract class MutableResource extends Resource
         return [$document];
     }
 
+    /**
+     * @param int[]|string[]|null $ids
+     * @param int<1, max> $limit
+     * @param Closure(iterable<mixed> $items):void $callback
+     * @param Closure(int $count):void $resolveCount
+     * @param array<string, mixed> $criteria
+     */
     abstract public function prepareSeed(
         ?array $ids,
         int $limit,
