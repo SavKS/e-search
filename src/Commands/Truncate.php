@@ -24,12 +24,12 @@ class Truncate extends Command
             return;
         }
 
-        $client = $this->makeClient();
-
         foreach ($resourceClasses as $name => $resourceClass) {
-            $this->runtimeWrapper(function () use ($resourceClass, $name, $client) {
+            $this->runtimeWrapper(function () use ($resourceClass, $name) {
                 /** @var MutableResource<mixed> $resource */
                 $resource = new $resourceClass();
+
+                $client = $resourceClass::newClient();
 
                 if ($this->option('index-name')) {
                     $resource->useIndex(

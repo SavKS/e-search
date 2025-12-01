@@ -23,7 +23,9 @@ class ResourceRunner
         public readonly MutableResource $resource,
         ?string $connection = null
     ) {
-        $this->client = new Client($connection);
+        $this->client = new Client(
+            $connection ?? $this->resource->getConnectionName()
+        );
     }
 
     public function indexExists(): bool

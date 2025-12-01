@@ -29,12 +29,12 @@ class RemoveRedundantIndices extends Command
             return;
         }
 
-        $client = $this->makeClient();
-
         foreach ($resourceClasses as $name => $resourceClass) {
-            $this->runtimeWrapper(function () use ($client, $name) {
+            $this->runtimeWrapper(function () use ($name) {
                 /** @var MutableResource<mixed> $resource */
                 $resource = app(ResourcesRepository::class)->make($name);
+
+                $client = $resource::newClient();
 
                 if ($this->option('index-name')) {
                     $resource->useIndex(

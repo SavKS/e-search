@@ -4,6 +4,7 @@ namespace Savks\ESearch\Support;
 
 use Illuminate\Support\Str;
 use Savks\ESearch\Builder\Builder;
+use Savks\ESearch\Elasticsearch\Client;
 
 abstract class Resource
 {
@@ -37,6 +38,11 @@ abstract class Resource
         return $this;
     }
 
+    public function getConnectionName(): ?string
+    {
+        return null;
+    }
+
     public function documentIdBy(): string
     {
         return 'id';
@@ -67,6 +73,13 @@ abstract class Resource
     {
         return new Builder(
             new static()
+        );
+    }
+
+    public static function newClient(?string $connection = null): Client
+    {
+        return new Client(
+            $connection ?? (new static())->getConnectionName()
         );
     }
 }

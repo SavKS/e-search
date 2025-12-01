@@ -2,6 +2,7 @@
 
 namespace Savks\ESearch\Elasticsearch;
 
+use InvalidArgumentException;
 use Savks\ESearch\Exceptions\InvalidConfiguration;
 
 class ConnectionsManager
@@ -15,6 +16,30 @@ class ConnectionsManager
         protected readonly array $connectionDeclarations,
         protected readonly string $defaultConnectionName
     ) {
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    public function connectUsing(string $name, array $config, bool $force = false): Connection
+    {
+        if (
+            ! $force
+            && isset($this->connections[$name])
+        ) {
+            throw new InvalidArgumentException("Connection with name {$name} already exists.");
+        }
+
+        $this->connections[$name] = new Connection($name, $config);
+
+        return $this->connections[$name];
+    }
+
+    public function purge(string $name): static
+    {
+        unset($this->connections[$name]);
+
+        return $this;
     }
 
     public function resolveDefault(): Connection

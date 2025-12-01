@@ -57,7 +57,9 @@ class Builder
         public readonly Resource $resource,
         ?string $connection = null
     ) {
-        $this->client = new Client($connection);
+        $this->client = new Client(
+            $connection ?? $this->resource->getConnectionName()
+        );
 
         $this->limit = static::DEFAULT_LIMIT;
     }

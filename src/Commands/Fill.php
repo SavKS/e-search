@@ -34,11 +34,12 @@ class Fill extends Command
             return;
         }
 
-        $client = $this->makeClient();
-
         foreach ($resourceClasses as $name => $resourceClass) {
-            $this->runtimeWrapper(function () use ($resourceClass, $client, $name) {
+            $this->runtimeWrapper(function () use ($resourceClass, $name) {
+                /** @var MutableResource $resource */
                 $resource = new $resourceClass();
+
+                $client = $resourceClass::newClient();
 
                 $datetimeSuffix = now()->format('Y_m_d_His') . '_' . strtolower(Str::random(6));
 

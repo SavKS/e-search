@@ -120,13 +120,6 @@ abstract class Command extends BaseCommand
         return $criteria;
     }
 
-    protected function makeClient(): Client
-    {
-        return new Client(
-            $this->option('connection')
-        );
-    }
-
     /**
      * @return array<mixed>
      */
