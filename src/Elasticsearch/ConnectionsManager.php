@@ -2,11 +2,19 @@
 
 namespace Savks\ESearch\Elasticsearch;
 
+use Closure;
 use InvalidArgumentException;
+use Savks\ESearch\Elasticsearch\Connection as BaseConnection;
+use Savks\ESearch\Elasticsearch\Contracts\Connection;
 use Savks\ESearch\Exceptions\InvalidConfiguration;
 
 class ConnectionsManager
 {
+    /**
+     * @var array<string, Closure(string $name, array<string, mixed> $config):Connection>
+     */
+    protected array $extensions = [];
+
     /**
      * @var array<string, Connection>
      */
@@ -30,9 +38,32 @@ class ConnectionsManager
             throw new InvalidArgumentException("Connection with name {$name} already exists.");
         }
 
-        $this->connections[$name] = new Connection($name, $config);
+        if (isset($this->extensions[$name])) {
+            $this->connections[$name] = ($this->extensions[$name])($name, $config);
+        } else {
+            $this->connections[$name] = new BaseConnection($name, $config);
+        }
 
         return $this->connections[$name];
+    }
+
+    /**
+     * @param Closure(string $name, array<string, mixed> $config):Connection $callback
+     *
+     * @return $this
+     */
+    public function extend(string $name, Closure $callback): static
+    {
+        $this->extensions[$name] = $callback;
+
+        return $this;
+    }
+
+    public function forgetExtension(string $name): static
+    {
+        unset($this->extensions[$name]);
+
+        return $this;
     }
 
     public function purge(string $name): static
@@ -58,18 +89,23 @@ class ConnectionsManager
 
     protected function createConnection(?string $name = null): Connection
     {
-        $name ??= config('e-search.default_connection');
+        $name ??= config()->string('e-search.default_connection');
 
         if (! $name) {
             throw new InvalidConfiguration('Default connection name is not defined');
         }
 
+        /** @var array<string, mixed> $config */
         $config = config("e-search.connections.{$name}");
 
         if (! $config) {
             throw new InvalidConfiguration("Connection with name \"{$name}\" not defined");
         }
 
-        return new Connection($name, $config);
+        if (isset($this->extensions[$name])) {
+            return ($this->extensions[$name])($config);
+        }
+
+        return new BaseConnection($name, $config);
     }
 }

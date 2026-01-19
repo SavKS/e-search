@@ -8,8 +8,9 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Savks\ESearch\Elasticsearch\Contracts\Connection as ConnectionContract;
 
-class Connection
+class Connection implements ConnectionContract
 {
     public readonly bool $isTrackPerformanceEnabled;
 
