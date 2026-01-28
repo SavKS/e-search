@@ -39,7 +39,9 @@ class Fill extends Command
                 /** @var MutableResource $resource */
                 $resource = new $resourceClass();
 
-                $client = $resourceClass::newClient();
+                $client = $resourceClass::newClient(
+                    $this->option('connection')
+                );
 
                 $datetimeSuffix = now()->format('Y_m_d_His') . '_' . strtolower(Str::random(6));
 
