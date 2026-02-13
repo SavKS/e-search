@@ -103,7 +103,7 @@ class ConnectionsManager
         }
 
         if (isset($this->extensions[$name])) {
-            return ($this->extensions[$name])($config);
+            return ($this->extensions[$name])($name, $config);
         }
 
         return new BaseConnection($name, $config);
