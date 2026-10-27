@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Savks\ESearch\Elasticsearch\Client;
+use Savks\ESearch\Exceptions\BulkSaveFail;
 use Savks\ESearch\Exceptions\CommandFailed;
 use Savks\ESearch\Exceptions\CommandTerminated;
 use Savks\ESearch\Support\MutableResource;
@@ -238,10 +239,14 @@ class Fill extends Command
                 }
 
                 if ($documents) {
-                    $client->bulkSave(
+                    $response = $client->bulkSave(
                         $resource,
                         array_merge(...$documents)
                     );
+
+                    if (! empty($response['errors'])) {
+                        throw BulkSaveFail::makeFromResponse($response);
+                    }
                 }
 
                 if ($withQueryLog) {
